@@ -7,6 +7,7 @@
     "ctaNote": "No credit card. 1 free mock.",
     "session": {
       "liveLabel": "Live session · Part 2",
+      "previewLabel": "Example live speaking session with band scores",
       "examinerLabel": "Examiner",
       "examinerPrompt": "Describe a place where you like to read. You have one minute to prepare.",
       "criteria": {

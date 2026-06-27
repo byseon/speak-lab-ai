@@ -223,7 +223,7 @@ export function LiveAssessmentSession({
           <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{description}</p>
         </div>
-        <Badge variant={isReady ? "default" : "secondary"} className="w-fit">
+        <Badge variant={isReady ? "default" : "secondary"} className="w-fit" aria-hidden="true">
           {isReady ? (
             <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
           ) : (
@@ -233,20 +233,34 @@ export function LiveAssessmentSession({
         </Badge>
       </div>
 
+      <p role="status" aria-live="polite" className="sr-only">
+        {status}
+      </p>
+
       {error ? (
-        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <div
+          role="alert"
+          className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
           {error}
         </div>
       ) : null}
 
       {!isReady && missing.length ? (
-        <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+        <div
+          role="status"
+          className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
+        >
           Missing backend env: {missing.join(", ")}
         </div>
       ) : null}
 
       {saveMessage ? (
-        <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
+        >
           {saveMessage}
         </div>
       ) : null}
@@ -255,7 +269,7 @@ export function LiveAssessmentSession({
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex items-center gap-2 text-sm font-medium">
-              <Target className="h-4 w-4 text-primary" />
+              <Target aria-hidden="true" className="h-4 w-4 text-primary" />
               Speaking parts
             </div>
             <div className="mt-3 flex flex-wrap gap-2">

@@ -11,7 +11,12 @@ export function LiveSessionMockup() {
   const { t } = useTranslation("landing");
 
   return (
-    <div className="relative mx-auto w-full max-w-md lg:mx-0 lg:max-w-none">
+    <figure
+      className="relative mx-auto w-full max-w-md lg:mx-0 lg:max-w-none"
+      aria-label={t("hero.session.previewLabel", {
+        defaultValue: "Example live speaking session with band scores",
+      })}
+    >
       <div
         className="pointer-events-none absolute -inset-6 rounded-[2rem] bg-primary/30 blur-3xl"
         aria-hidden
@@ -32,7 +37,7 @@ export function LiveSessionMockup() {
 
         <div className="relative flex items-center gap-2 text-sm text-primary-foreground/90">
           <span
-            className="h-2 w-2 motion-safe:animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px_oklch(0.72_0.17_155_/_0.85)]"
+            className="h-2 w-2 motion-safe:animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px_oklch(0.72_0.17_155_/_0.85)] motion-reduce:animate-none"
             aria-hidden
           />
           <span>{t("hero.session.liveLabel")}</span>
@@ -63,6 +68,6 @@ export function LiveSessionMockup() {
           ))}
         </div>
       </div>
-    </div>
+    </figure>
   );
 }

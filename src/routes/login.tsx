@@ -88,7 +88,7 @@ function LoginPage() {
         </>
       }
     >
-      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+      <form onSubmit={onSubmit} className="space-y-4" noValidate aria-labelledby="auth-title">
         <AuthFormField
           id="email"
           label="Email"
