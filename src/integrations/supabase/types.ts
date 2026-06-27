@@ -14,6 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_results: {
+        Row: {
+          coaching: Json
+          created_at: string
+          fluency_band: number | null
+          grammar_band: number | null
+          id: string
+          lexical_band: number | null
+          overall_band: number | null
+          pronunciation_band: number | null
+          scorecard: Json
+          session_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coaching?: Json
+          created_at?: string
+          fluency_band?: number | null
+          grammar_band?: number | null
+          id?: string
+          lexical_band?: number | null
+          overall_band?: number | null
+          pronunciation_band?: number | null
+          scorecard?: Json
+          session_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coaching?: Json
+          created_at?: string
+          fluency_band?: number | null
+          grammar_band?: number | null
+          id?: string
+          lexical_band?: number | null
+          overall_band?: number | null
+          pronunciation_band?: number | null
+          scorecard?: Json
+          session_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_results_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "mock_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mock_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          duration_s: number | null
+          id: string
+          kind: string
+          metadata: Json
+          started_at: string
+          status: string
+          tavus_conversation_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          duration_s?: number | null
+          id?: string
+          kind?: string
+          metadata?: Json
+          started_at?: string
+          status?: string
+          tavus_conversation_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          duration_s?: number | null
+          id?: string
+          kind?: string
+          metadata?: Json
+          started_at?: string
+          status?: string
+          tavus_conversation_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -40,6 +135,112 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      progress_history: {
+        Row: {
+          created_at: string
+          fluency_band: number | null
+          grammar_band: number | null
+          id: string
+          lexical_band: number | null
+          notes: string | null
+          overall_band: number | null
+          pronunciation_band: number | null
+          recorded_at: string
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fluency_band?: number | null
+          grammar_band?: number | null
+          id?: string
+          lexical_band?: number | null
+          notes?: string | null
+          overall_band?: number | null
+          pronunciation_band?: number | null
+          recorded_at?: string
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fluency_band?: number | null
+          grammar_band?: number | null
+          id?: string
+          lexical_band?: number | null
+          notes?: string | null
+          overall_band?: number | null
+          pronunciation_band?: number | null
+          recorded_at?: string
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_history_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "mock_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transcripts: {
+        Row: {
+          audio_url: string | null
+          created_at: string
+          ended_at_s: number | null
+          id: string
+          part: number
+          prompt: string | null
+          session_id: string
+          speaker: string
+          started_at_s: number | null
+          text: string
+          turn_idx: number
+          user_id: string
+          words: Json
+        }
+        Insert: {
+          audio_url?: string | null
+          created_at?: string
+          ended_at_s?: number | null
+          id?: string
+          part: number
+          prompt?: string | null
+          session_id: string
+          speaker: string
+          started_at_s?: number | null
+          text?: string
+          turn_idx: number
+          user_id: string
+          words?: Json
+        }
+        Update: {
+          audio_url?: string | null
+          created_at?: string
+          ended_at_s?: number | null
+          id?: string
+          part?: number
+          prompt?: string | null
+          session_id?: string
+          speaker?: string
+          started_at_s?: number | null
+          text?: string
+          turn_idx?: number
+          user_id?: string
+          words?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transcripts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "mock_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
