@@ -38,7 +38,7 @@ function CTA({ className = "" }: { className?: string }) {
   return (
     <Button asChild size="lg" className={`w-full sm:w-auto shadow-[var(--shadow-soft)] ${className}`}>
       <Link to="/signup">
-        {t("cta.takeFreeMock")} <ArrowRight className="ml-2 h-4 w-4" />
+        {t("cta.takeFreeMock")} <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
       </Link>
     </Button>
   );
@@ -78,7 +78,7 @@ function Landing() {
     <div className="min-h-screen bg-background font-sans text-foreground antialiased">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5">
         <Link to="/" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+          <span aria-hidden="true" className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
             <MessageSquareQuote className="h-4 w-4" />
           </span>
           <span className="text-lg font-semibold tracking-tight">SpeakLab</span>
@@ -93,11 +93,12 @@ function Landing() {
         </div>
       </header>
 
+      <main id="main">
       <section className="relative" style={{ background: "var(--gradient-hero)" }}>
         <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-14 sm:py-20 lg:py-28 lg:grid-cols-2 lg:items-center">
           <div className="min-w-0">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
-              <Sparkles className="h-3 w-3 text-primary" /> {t("hero.eyebrow")}
+              <Sparkles aria-hidden="true" className="h-3 w-3 text-primary" /> {t("hero.eyebrow")}
             </div>
             <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               {t("hero.headlinePrefix")}{" "}
@@ -114,12 +115,12 @@ function Landing() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative" aria-hidden="true">
             <Card className="overflow-hidden border-border/70 shadow-[var(--shadow-soft)]">
               <div className="aspect-video bg-gradient-to-br from-primary/15 via-accent/40 to-background">
                 <div className="flex h-full flex-col justify-between p-5">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
+                    <span className="h-2 w-2 motion-safe:animate-pulse rounded-full bg-primary" />
                     {t("hero.session.liveLabel")}
                   </div>
                   <div className="rounded-xl border border-border bg-card/85 p-4 backdrop-blur">
@@ -287,15 +288,15 @@ function Landing() {
           <table className="w-full text-left text-sm">
             <thead className="bg-card/60 text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="px-4 py-3"></th>
-                <th className="px-4 py-3">{t("mockVsPractice.columns.mock")}</th>
-                <th className="px-4 py-3">{t("mockVsPractice.columns.practice")}</th>
+                <th scope="col" className="px-4 py-3"><span className="sr-only">Criterion</span></th>
+                <th scope="col" className="px-4 py-3">{t("mockVsPractice.columns.mock")}</th>
+                <th scope="col" className="px-4 py-3">{t("mockVsPractice.columns.practice")}</th>
               </tr>
             </thead>
             <tbody>
               {mvpRows.map((row) => (
                 <tr key={row.label} className="border-t border-border align-top">
-                  <td className="px-4 py-3 font-medium">{row.label}</td>
+                  <th scope="row" className="px-4 py-3 font-medium">{row.label}</th>
                   <td className="px-4 py-3 text-muted-foreground">{row.mock}</td>
                   <td className="px-4 py-3 text-muted-foreground">{row.practice}</td>
                 </tr>
@@ -325,7 +326,7 @@ function Landing() {
           <div className="mt-8 flex justify-center">
             <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
               <Link to="/signup">
-                {tCommon("cta.getStarted")} <ArrowRight className="ml-2 h-4 w-4" />
+                {tCommon("cta.getStarted")} <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
@@ -350,7 +351,8 @@ function Landing() {
       </Section>
 
       {/* 11. Footer CTA */}
-      <section className="border-t border-border bg-card/40">
+      </main>
+      <footer className="border-t border-border bg-card/40">
         <Section className="text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {t("footer.headline")}
@@ -362,13 +364,13 @@ function Landing() {
         </Section>
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 border-t border-border px-5 py-6 text-xs text-muted-foreground sm:flex-row">
           <div>{t("footer.copyright", { year: new Date().getFullYear() })}</div>
-          <div className="flex gap-4">
+          <nav aria-label="Footer" className="flex gap-4">
             <a href="#">{t("footer.links.privacy")}</a>
             <a href="#">{t("footer.links.terms")}</a>
             <a href="#">{t("footer.links.contact")}</a>
-          </div>
+          </nav>
         </div>
-      </section>
+      </footer>
     </div>
   );
 }
