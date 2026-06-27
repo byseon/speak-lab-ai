@@ -25,9 +25,12 @@ from urllib.parse import parse_qs, urlparse
 
 from assessment.config import config
 from assessment import pal
+from assessment.schema import Scorecard
 from assessment.schema import Part
 from assessment.webhook import ConversationStore, handle_event
 from assessment.quickscore import score_transcript
+from assessment.session import CoachingSession
+from assessment.tavus_tools import scorecard_from_event
 from assessment.transcript import candidate_text, transcript_messages, transcript_ready
 
 TAVUS = "https://tavusapi.com/v2"
@@ -52,15 +55,53 @@ def health() -> dict:
 def score_conversation(cid: str) -> dict:
     conv = _tavus("GET", f"/conversations/{cid}?verbose=true")
     text = candidate_text(conv)
-    if not text:
-        if not transcript_ready(conv):
-            return {"error": "transcript not ready yet — wait ~10-20s after ending the "
-                             "call, then click Score me again."}
-        return {"error": "no candidate speech found in the transcript."}
-    card, report, notes = score_transcript(text)
-    by_part = score_parts(conv, CONVERSATION_PARTS.get(cid, [1, 2, 3]), text)
+    if text:
+        card, report, notes = score_transcript(text)
+        by_part = score_parts(conv, CONVERSATION_PARTS.get(cid, [1, 2, 3]), text)
+        return {"scorecard": card.to_dict(), "report": asdict(report),
+                "by_part": by_part, "notes": notes, "transcript_chars": len(text)}
+
+    tool_card = scorecard_from_verbose_events(conv) or STORE.get(cid).scorecard
+    if tool_card:
+        return score_from_tool_card(cid, tool_card)
+
+    if not transcript_ready(conv):
+        return {"error": "Transcript is not ready yet. Click End and score again in a few seconds."}
+    return {"error": "no candidate speech found in the transcript."}
+
+
+def scorecard_from_verbose_events(conv: dict) -> Scorecard | None:
+    for event in conv.get("events", []):
+        for payload in (event.get("properties", {}), event):
+            try:
+                return scorecard_from_event(payload)
+            except Exception:
+                continue
+    return None
+
+
+def score_from_tool_card(cid: str, card: Scorecard) -> dict:
+    report = CoachingSession(mode="exam").conversational_summary(card)
+    parts = CONVERSATION_PARTS.get(cid, [1, 2, 3])
+    by_part = [{
+        "part": part,
+        "scorecard": card.to_dict(),
+        "coaching": {
+            "report": asdict(report),
+            "notes": {"source": "tavus_assessment_tool"},
+        },
+        "raw_transcript": {
+            "source": "tavus_assessment_tool",
+            "message": "Score came from the Tavus assessment tool before transcript export.",
+        },
+        "candidate_text": "",
+    } for part in parts]
+    notes = {
+        "source": "tavus_assessment_tool",
+        "transcript_status": "not_ready",
+    }
     return {"scorecard": card.to_dict(), "report": asdict(report),
-            "by_part": by_part, "notes": notes, "transcript_chars": len(text)}
+            "by_part": by_part, "notes": notes, "transcript_chars": 0}
 
 
 def score_parts(conv: dict, parts: list[int], full_text: str) -> list[dict]:
@@ -295,13 +336,10 @@ async function endAndScore(){
  if(!CID){alert('start a test first');return;}
  const box=document.getElementById('score'); box.textContent='Ending the call…';
  await fetch('/api/end?cid='+encodeURIComponent(CID));
- for(let i=0;i<8;i++){
-   await new Promise(r=>setTimeout(r,4000));
-   const d=await (await fetch('/api/score?cid='+encodeURIComponent(CID))).json();
-   if(!d.error){renderScore(d);return;}
-   box.textContent='Waiting for the transcript… ('+((i+1)*4)+'s)';
- }
- box.textContent='Transcript still not ready — click "Score me" in a few seconds.';
+ box.textContent='Scoring…';
+ const d=await (await fetch('/api/score?cid='+encodeURIComponent(CID))).json();
+ if(d.error){box.textContent='Score not ready yet — click "Score me" again in a few seconds. '+esc(d.error);return;}
+ renderScore(d);
 }
 </script></body></html>"""
 

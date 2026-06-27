@@ -219,19 +219,11 @@ export function LiveAssessmentSession({
           setSaveMessage(`Call ended, but status save failed: ${renderErrorMessage(saveError)}`);
         }
       }
-      for (let attempt = 1; attempt <= 8; attempt += 1) {
-        setStatus(`Waiting for transcript... ${attempt * 4}s`);
-        await new Promise((resolve) => setTimeout(resolve, 4000));
-        try {
-          await scoreConversation();
-          return;
-        } catch (cause) {
-          if (attempt === 8) throw cause;
-        }
-      }
+      setStatus("Scoring now...");
+      await scoreConversation();
     } catch (cause) {
       setError(renderErrorMessage(cause));
-      setStatus("Transcript still processing");
+      setStatus("Score not ready yet");
     } finally {
       setIsBusy(false);
     }
