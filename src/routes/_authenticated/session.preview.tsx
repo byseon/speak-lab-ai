@@ -18,7 +18,7 @@ function SessionPreview() {
         to="/home"
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" /> Back
+        <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Back to home
       </Link>
       <LiveAssessmentSession
         username={username}

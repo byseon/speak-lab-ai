@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, Mic } from "lucide-react";
+import { SkipLink } from "@/components/SkipLink";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -75,7 +76,8 @@ function Part2SpeakPage() {
 
   return (
     <div className="min-h-dvh bg-background pb-28 font-sans text-foreground antialiased">
-      <div className="mx-auto w-full max-w-md px-4 pt-6 sm:px-6">
+      <SkipLink />
+      <main id="main" className="mx-auto w-full max-w-md px-4 pt-6 sm:px-6">
         <header className="flex items-center justify-between">
           <h1 className="text-xl font-semibold tracking-tight">
             {t("part2.speak.title")}
@@ -85,7 +87,7 @@ function Part2SpeakPage() {
           >
             <span
               aria-hidden="true"
-              className="h-2 w-2 rounded-full bg-red-500 motion-safe:animate-pulse"
+              className="h-2 w-2 rounded-full bg-red-500 motion-safe:animate-pulse motion-reduce:animate-none"
             />
             <Mic aria-hidden="true" className="h-3 w-3" />
             {t("part2.speak.recording")}
@@ -169,7 +171,7 @@ function Part2SpeakPage() {
         <div role="status" aria-live="polite" className="sr-only">
           {announcement}
         </div>
-      </div>
+      </main>
 
       {/* Sticky End turn CTA */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 px-4 pt-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] backdrop-blur sm:px-6">

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/accordion";
 import { Sparkles, ArrowRight, MessageSquareQuote } from "lucide-react";
 import { LiveSessionMockup } from "@/components/LiveSessionMockup";
+import { ScoreProgressBar } from "@/components/ScoreProgressBar";
 import { SkipLink } from "@/components/SkipLink";
 
 export const Route = createFileRoute("/")({
@@ -239,7 +240,7 @@ function Landing() {
         <SectionBand className="bg-section-teal">
           <Section>
             <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-              <Card className="order-2 border-border/70 p-6 lg:order-1">
+              <Card className="order-2 border-border/70 p-6 lg:order-1" aria-hidden="true">
                 <div className="aspect-[4/3] rounded-lg bg-gradient-to-br from-primary/15 via-accent/40 to-background p-5">
                   <div className="flex h-full flex-col justify-end gap-3">
                     <div className="rounded-lg border border-border bg-card/80 p-3 text-sm">
@@ -293,19 +294,16 @@ function Landing() {
                     </div>
                   </div>
                 </div>
-                <div className="space-y-3">
+                <div
+                  className="space-y-3"
+                  role="list"
+                  aria-label={t("personalization.chart.ariaLabel", {
+                    defaultValue: "IELTS criteria band scores",
+                  })}
+                >
                   {chartRows.map((row) => (
-                    <div key={row.label}>
-                      <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                        <span>{row.label}</span>
-                        <span>{row.value}</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-muted">
-                        <div
-                          className="h-2 rounded-full bg-primary"
-                          style={{ width: `${(row.value / 9) * 100}%` }}
-                        />
-                      </div>
+                    <div key={row.label} role="listitem">
+                      <ScoreProgressBar label={row.label} value={row.value} />
                     </div>
                   ))}
                 </div>

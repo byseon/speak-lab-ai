@@ -1,4 +1,19 @@
-const API_BASE_URL = (import.meta.env.VITE_ASSESSMENT_API_URL ?? "").replace(/\/$/, "");
+// In local dev, prefer VITE_ASSESSMENT_API_URL (Python backend via ngrok or vite proxy).
+// In production, route /api/* to the Supabase edge function `assessment`.
+const EXPLICIT_BASE = (import.meta.env.VITE_ASSESSMENT_API_URL ?? "").replace(/\/$/, "");
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "");
+const SUPABASE_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+  import.meta.env.VITE_SUPABASE_ANON_KEY ??
+  "") as string;
+
+/** Use Supabase edge function on deployed Lovable; local /api proxy in dev. */
+function useEdgeFunction() {
+  if (EXPLICIT_BASE) return false;
+  if (import.meta.env.VITE_USE_ASSESSMENT_EDGE === "false") return false;
+  return Boolean(SUPABASE_URL && typeof window !== "undefined");
+}
+
+const API_BASE_URL = useEdgeFunction() ? `${SUPABASE_URL}/functions/v1/assessment` : EXPLICIT_BASE;
 
 export type SpeakingPart = 1 | 2 | 3;
 
@@ -59,9 +74,7 @@ export type PartScore = {
 };
 
 export type ScoreAssessmentResponse = {
-  // Overall (average of the parts) — used for the headline display.
   scorecard?: Scorecard;
-  // Per-part breakdown — persisted as one row per part (Part 1/2/3).
   by_part?: PartScore[];
   report?: AssessmentReport;
   notes?: Record<string, unknown>;
@@ -74,19 +87,38 @@ type RequestOptions = RequestInit & {
 };
 
 function apiUrl(path: string, query?: Record<string, string>) {
-  const url = new URL(`${API_BASE_URL}${path}`, window.location.origin);
+  // Edge function exposes routes flat (no /api prefix); strip it when routing there.
+  const finalPath = useEdgeFunction() ? path.replace(/^\/api/, "") : path;
+  const url = new URL(`${API_BASE_URL}${finalPath}`, window.location.origin);
   Object.entries(query ?? {}).forEach(([key, value]) => {
     url.searchParams.set(key, value);
   });
   return API_BASE_URL ? url.toString() : `${url.pathname}${url.search}`;
 }
 
+async function authHeaders(): Promise<Record<string, string>> {
+  if (!useEdgeFunction()) return {};
+  const headers: Record<string, string> = {};
+  if (SUPABASE_KEY) headers.apikey = SUPABASE_KEY;
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token ?? SUPABASE_KEY;
+    if (token) headers.Authorization = `Bearer ${token}`;
+  } catch {
+    if (SUPABASE_KEY) headers.Authorization = `Bearer ${SUPABASE_KEY}`;
+  }
+  return headers;
+}
+
 async function requestJson<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { query, headers, ...init } = options;
+  const auth = await authHeaders();
   const response = await fetch(apiUrl(path, query), {
     ...init,
     headers: {
       ...(init.body ? { "Content-Type": "application/json" } : {}),
+      ...auth,
       ...headers,
     },
   });
@@ -120,9 +152,12 @@ export function endAssessment(conversationId: string) {
   });
 }
 
-export function scoreAssessment(conversationId: string) {
+export function scoreAssessment(conversationId: string, parts?: SpeakingPart[]) {
   return requestJson<ScoreAssessmentResponse>("/api/score", {
-    query: { cid: conversationId },
+    query: {
+      cid: conversationId,
+      ...(parts?.length ? { parts: parts.join(",") } : {}),
+    },
   });
 }
 
