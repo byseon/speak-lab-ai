@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ielts-assessment"
+version = "0.1.0"
+description = "Voice-ML assessment engine for IELTS Speaking on Tavus CVI"
+requires-python = ">=3.10"
+dependencies = []  # core (schema + fluency + aggregation) is pure stdlib and runs install-free
+
+[project.optional-dependencies]
+lexical = ["wordfreq>=3.0"]          # rare-word frequency bands
+nlp = ["spacy>=3.7"]                  # grammar parsing (clauses, T-units)
+audio = ["numpy>=1.24", "librosa>=0.10"]  # prosody / acoustic features
+pron = ["torch>=2.1", "transformers>=4.40"]  # Charsiu GOP + forced alignment (MIT)
+env = ["python-dotenv>=1.0"]         # optional .env auto-loading
+# Note: rubric judges use the Tavus hosted LLM via stdlib urllib — no SDK needed.
+dev = ["pytest>=8"]
+all = ["wordfreq>=3.0", "spacy>=3.7", "numpy>=1.24", "librosa>=0.10",
+       "torch>=2.1", "transformers>=4.40", "python-dotenv>=1.0", "pytest>=8"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
