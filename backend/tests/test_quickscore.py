@@ -10,6 +10,12 @@ def test_score_transcript_returns_full_scorecard():
     assert 4.0 <= card.overall_band <= 9.0
     assert set(card.criteria) == {c.value for c in Criterion}
     assert report.spoken_overview
+    assert report.final_summary
+    assert len(report.criteria_feedback) == 4
+    assert all(item.score_justification for item in report.criteria_feedback)
+    assert all(item.issue_found for item in report.criteria_feedback)
+    assert all(item.area_of_improvement for item in report.criteria_feedback)
+    assert any(item.example for item in report.criteria_feedback)
     # lexical/grammar are real evidence; fluency/pronunciation are placeholders
     assert "lexical_resource" in notes["real_criteria"]
     assert "fluency_coherence" in notes["placeholder_criteria"]

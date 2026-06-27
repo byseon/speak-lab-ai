@@ -9,7 +9,14 @@ from assessment.tavus_tools import (
 
 
 def _args(fc=6.0, lr=6.0, gra=6.0, pr=7.0):
-    mk = lambda b: {"band": b, "feedback": "be more precise", "evidence": ["it was good"]}
+    mk = lambda b: {
+        "band": b,
+        "feedback": "be more precise",
+        "score_justification": "The answer is clear but sometimes general.",
+        "area_of_improvement": "Use more precise examples.",
+        "issue_found": "The answer relies on safe wording.",
+        "evidence": ['"it was good"'],
+    }
     return {
         "fluency_coherence": mk(fc), "lexical_resource": mk(lr),
         "grammatical_range_accuracy": mk(gra), "pronunciation": mk(pr),
@@ -30,7 +37,9 @@ def test_scorecard_from_arguments_aggregates():
     assert card.overall_band == 6.5
     assert set(card.criteria) == {c.value for c in Criterion}
     pr = card.criteria[Criterion.PRONUNCIATION.value]
-    assert pr.band == 7.0 and pr.evidence[0].quote == "it was good"
+    assert pr.band == 7.0 and pr.evidence[0].quote == '"it was good"'
+    assert pr.feedback[0].suggestion == "Use more precise examples."
+    assert pr.feedback[0].example_from_candidate == "it was good"
 
 
 def test_scorecard_from_event_checks_tool_name():
@@ -44,6 +53,30 @@ def test_event_arguments_may_be_json_string():
     import json
     ev = {"tool_name": TOOL_NAME, "arguments": json.dumps(_args(7, 7, 7, 7))}
     assert scorecard_from_event(ev).overall_band == 7.0
+
+
+def test_existing_tavus_flat_schema_is_supported():
+    card = scorecard_from_arguments({
+        "overall_band": 6.5,
+        "fc_band": 6.0,
+        "fc_evidence": 'The candidate said "I like this place because it is peaceful."',
+        "fc_improvement": "Add clearer signposting.",
+        "lr_band": 7.0,
+        "lr_evidence": 'The phrase "peaceful and memorable" shows useful description.',
+        "lr_improvement": "Add stronger collocations.",
+        "gra_band": 6.0,
+        "gra_evidence": 'The line "I went there because my friend invited me" is accurate but simple.',
+        "gra_improvement": "Use more controlled complex clauses.",
+        "pron_band": 6.0,
+        "pron_evidence": "Speech appeared understandable.",
+        "pron_improvement": "Work on sentence stress.",
+        "summary": "Overall band 6.5.",
+    })
+    assert card.overall_band == 6.5
+    assert card.part_summaries["llm_summary"] == "Overall band 6.5."
+    assert card.criteria["lexical_resource"].band == 7.0
+    assert card.criteria["fluency_coherence"].feedback[0].suggestion == "Add clearer signposting."
+    assert card.criteria["fluency_coherence"].feedback[0].example_from_candidate.startswith("I like")
 
 
 def test_grading_context_surfaces_pronunciation():

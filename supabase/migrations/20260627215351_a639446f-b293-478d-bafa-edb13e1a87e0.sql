@@ -5,6 +5,14 @@ DROP TABLE IF EXISTS public.transcripts CASCADE;
 DROP TABLE IF EXISTS public.assessment_results CASCADE;
 DROP TABLE IF EXISTS public.mock_sessions CASCADE;
 
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SET search_path = public;
+
 -- mock_sessions
 CREATE TABLE public.mock_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -15,8 +15,26 @@ export type StartAssessmentResponse = {
 
 export type CriterionScore = {
   band: number;
+  criterion?: string;
   rationale?: string;
-  evidence?: string[];
+  evidence?: Array<{ quote?: string; observation?: string; feature?: string }> | string[];
+  feedback?: Array<{
+    issue?: string;
+    suggestion?: string;
+    example_from_candidate?: string;
+    upgraded_example?: string;
+  }>;
+  comparative_note?: string;
+};
+
+export type CriterionFeedback = {
+  criterion: string;
+  label: string;
+  band: number;
+  score_justification: string;
+  issue_found?: string;
+  area_of_improvement: string;
+  example?: string;
 };
 
 export type Scorecard = {
@@ -26,6 +44,8 @@ export type Scorecard = {
 
 export type AssessmentReport = {
   spoken_overview?: string;
+  criteria_feedback?: CriterionFeedback[];
+  final_summary?: string;
   focus_criterion?: string;
   next_steps?: string[];
 };

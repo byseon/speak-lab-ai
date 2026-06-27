@@ -67,9 +67,7 @@ function HomePage() {
         <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary">
           <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> Today's focus
         </div>
-        <h2 className="mt-2 text-lg font-semibold leading-snug">
-          Build vocabulary for Part 2
-        </h2>
+        <h2 className="mt-2 text-lg font-semibold leading-snug">Build vocabulary for Part 2</h2>
         <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs text-muted-foreground">
           <span className="truncate">{focusReason}</span>
         </div>
