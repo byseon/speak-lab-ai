@@ -19,9 +19,9 @@ if (!i18n.isInitialized) {
           landing: landingEn,
         },
       },
-      initImmediate: false,
       interpolation: { escapeValue: false },
       react: { useSuspense: false },
+      initImmediate: false,
     });
 }
 
