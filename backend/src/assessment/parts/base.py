@@ -51,6 +51,15 @@ class PartModule:
         """Return question(s) / cue card for this part. Override; RAG-pluggable."""
         raise NotImplementedError
 
+    def greeting(self, *, topic: str | None = None) -> str:
+        """The deterministic line that opens this part (the modular 'greeting').
+
+        Canonical wording lives in `pal.PART_GREETINGS`; imported lazily to keep
+        the part modules free of an import-time dependency on the PAL config.
+        """
+        from ..pal import part_greeting
+        return part_greeting(self.config.number, topic=topic)
+
     def assess(self, turns: list[TurnFeatures]) -> PartAssessment:
         if not turns:
             return PartAssessment(self.config.number, 0, 0, 0.0, 0.0, 0, 0.0,

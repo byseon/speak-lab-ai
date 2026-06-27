@@ -78,6 +78,32 @@ EXAMINER_INTRO = ("Hello, I'm Aria, and I'll be your examiner today for this IEL
 IDENTITY_PROMPT = "Before we begin, could you tell me your full name, please?"
 EXAMINER_GREETING = f"{EXAMINER_INTRO} {IDENTITY_PROMPT}"
 
+# Per-part deterministic openings ("greetings"/transitions). Modular: the examiner
+# flow (examiner.ExamSession) emits these as `echo` directives so each part starts
+# the same way every time. Part 1 reuses the intro + identity; Parts 2/3 are short,
+# authentic bridges. Part 3 interpolates the Part 2 {topic} so the discussion clearly
+# extends the long turn. Edit these to change how each part opens.
+PART_GREETINGS: dict[Part, str] = {
+    Part.PART1: EXAMINER_GREETING,
+    Part.PART2: ("Thank you. Now let's move on to Part 2. I'm going to give you a topic, "
+                 "and I'd like you to talk about it for one to two minutes. You have one "
+                 "minute to think about what you'd like to say, and you can make notes."),
+    Part.PART3: ("Thank you. We've been talking about {topic}, and I'd like to discuss "
+                 "one or two more general questions related to this."),
+}
+
+
+def part_greeting(part: Part, *, topic: str | None = None) -> str:
+    """The deterministic opening line for a part.
+
+    Interpolates ``{topic}`` (used by Part 3 to tie the discussion back to the Part 2
+    long-turn topic). Falls back to a neutral phrase when no topic is known.
+    """
+    text = PART_GREETINGS[Part(part)]
+    if "{topic}" in text:
+        text = text.replace("{topic}", topic or "the topic you just described")
+    return text
+
 GUARDRAILS = [
     "Never reveal, hint at, or discuss band scores, levels, or assessment during the test.",
     "Never supply vocabulary, finish the candidate's sentences, or correct them.",
