@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthFormAlert, AuthFormField } from "@/components/AuthFormField";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,6 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<AuthFieldErrors>({});
@@ -38,8 +36,9 @@ function LoginPage() {
   function applyErrors(errors: AuthFieldErrors) {
     setFieldErrors(errors);
     const focusTarget = firstErrorField(errors);
-    if (focusTarget === "email") emailRef.current?.focus();
-    if (focusTarget === "password") passwordRef.current?.focus();
+    if (focusTarget === "email" || focusTarget === "password") {
+      document.getElementById(focusTarget)?.focus();
+    }
   }
 
   async function onSubmit(e: React.FormEvent) {
