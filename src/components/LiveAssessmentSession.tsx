@@ -326,7 +326,11 @@ export function LiveAssessmentSession({
       </Card>
 
       {conversationUrl ? (
-        <div className="overflow-hidden rounded-lg border border-border bg-black">
+        <div
+          role="region"
+          aria-label="AI IELTS speaking examiner video"
+          className="overflow-hidden rounded-lg border border-border bg-black"
+        >
           <iframe
             title="Tavus IELTS speaking conversation"
             src={conversationUrl}
@@ -347,7 +351,8 @@ export function LiveAssessmentSession({
 
       {score?.scorecard ? (
         <Card className="border-border/70 p-5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <h2 className="text-lg font-semibold tracking-tight">Your assessment results</h2>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div className="text-sm text-muted-foreground">Overall band</div>
               <div className="text-4xl font-semibold tracking-tight">

@@ -14,6 +14,7 @@ import {
   MessageSquareQuote,
 } from "lucide-react";
 import { LiveSessionMockup } from "@/components/LiveSessionMockup";
+import { ScoreProgressBar } from "@/components/ScoreProgressBar";
 import { SkipLink } from "@/components/SkipLink";
 
 export const Route = createFileRoute("/")({
@@ -215,7 +216,7 @@ function Landing() {
       <SectionBand className="bg-section-teal">
       <Section>
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-          <Card className="order-2 border-border/70 p-6 lg:order-1">
+          <Card className="order-2 border-border/70 p-6 lg:order-1" aria-hidden="true">
             <div className="aspect-[4/3] rounded-lg bg-gradient-to-br from-primary/15 via-accent/40 to-background p-5">
               <div className="flex h-full flex-col justify-end gap-3">
                 <div className="rounded-lg border border-border bg-card/80 p-3 text-sm">
@@ -269,19 +270,10 @@ function Landing() {
                 </div>
               </div>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3" role="list" aria-label={t("personalization.chart.ariaLabel", { defaultValue: "IELTS criteria band scores" })}>
               {chartRows.map((row) => (
-                <div key={row.label}>
-                  <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-                    <span>{row.label}</span>
-                    <span>{row.value}</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-muted">
-                    <div
-                      className="h-2 rounded-full bg-primary"
-                      style={{ width: `${(row.value / 9) * 100}%` }}
-                    />
-                  </div>
+                <div key={row.label} role="listitem">
+                  <ScoreProgressBar label={row.label} value={row.value} />
                 </div>
               ))}
             </div>
@@ -378,12 +370,12 @@ function Landing() {
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {t("footer.headline")}
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-primary-foreground/80">{t("footer.subhead")}</p>
+          <p className="mx-auto mt-3 max-w-xl text-primary-foreground/90">{t("footer.subhead")}</p>
           <div className="mt-8 flex justify-center">
             <CTA className="!bg-primary-foreground !text-primary hover:!bg-primary-foreground/90" />
           </div>
         </Section>
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 border-t border-primary-foreground/20 px-5 py-6 text-xs text-primary-foreground/70 sm:flex-row">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 border-t border-primary-foreground/20 px-5 py-6 text-xs text-primary-foreground/85 sm:flex-row">
           <div>{t("footer.copyright", { year: new Date().getFullYear() })}</div>
           <nav aria-label="Footer" className="flex gap-4">
             <span>{t("footer.links.privacy")}</span>

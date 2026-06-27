@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { ScoreProgressBar } from "@/components/ScoreProgressBar";
 import { CalendarDays, LineChart } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/progress")({
@@ -74,11 +75,20 @@ function ProgressPage() {
       </p>
 
       {loading ? (
-        <Card className="mt-6 border-border/70 p-6 text-center text-sm text-muted-foreground">
+        <Card
+          role="status"
+          aria-live="polite"
+          className="mt-6 border-border/70 p-6 text-center text-sm text-muted-foreground"
+        >
           Loading progress...
         </Card>
       ) : error ? (
-        <Card className="mt-6 border-border/70 p-6 text-sm text-destructive">{error}</Card>
+        <Card
+          role="alert"
+          className="mt-6 border-border/70 p-6 text-sm text-destructive"
+        >
+          {error}
+        </Card>
       ) : latest ? (
         <>
           <Card className="mt-6 border-border/70 p-5">
@@ -89,30 +99,21 @@ function ProgressPage() {
                   {latest.overall_band.toFixed(1)}
                 </div>
               </div>
-              <span className="grid h-11 w-11 place-items-center rounded-full bg-primary/10 text-primary">
+              <span
+                aria-hidden="true"
+                className="grid h-11 w-11 place-items-center rounded-full bg-primary/10 text-primary"
+              >
                 <LineChart className="h-5 w-5" />
               </span>
             </div>
             <div className="mt-5 space-y-3">
-              {criteria.map(([label, key]) => {
-                const value = latest[key];
-                return (
-                  <div key={key}>
-                    <div className="mb-1 flex justify-between text-xs">
-                      <span className="text-muted-foreground">{label}</span>
-                      <span className="font-semibold text-foreground">
-                        {value == null ? "--" : value.toFixed(1)}
-                      </span>
-                    </div>
-                    <div className="h-2 rounded-full bg-muted">
-                      <div
-                        className="h-2 rounded-full bg-primary"
-                        style={{ width: `${(((value ?? 0) / 9) * 100).toFixed(1)}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+              {criteria.map(([label, key]) => (
+                <ScoreProgressBar
+                  key={key}
+                  label={label}
+                  value={latest[key]}
+                />
+              ))}
             </div>
           </Card>
 
@@ -122,7 +123,7 @@ function ProgressPage() {
               <Card key={row.id} className="border-border/70 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="inline-flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
-                    <CalendarDays className="h-4 w-4 shrink-0 text-primary" />
+                    <CalendarDays aria-hidden="true" className="h-4 w-4 shrink-0 text-primary" />
                     <span className="truncate">{formatDate(row.recorded_at)}</span>
                   </div>
                   <div className="text-lg font-semibold">{row.overall_band.toFixed(1)}</div>
@@ -133,7 +134,10 @@ function ProgressPage() {
         </>
       ) : (
         <Card className="mt-6 border-border/70 p-6 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary">
+          <span
+            aria-hidden="true"
+            className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary"
+          >
             <LineChart className="h-6 w-6" />
           </span>
           <h2 className="mt-4 text-lg font-semibold">Charts unlock after your first saved mock</h2>

@@ -71,6 +71,7 @@
       "weakestValue": "Lexical resource",
       "currentLabel": "Current band",
       "currentValue": "5.0",
+      "ariaLabel": "Example IELTS criteria band scores",
       "rows": [
         { "label": "Fluency", "value": 5.5 },
         { "label": "Lexical", "value": 5.0 },

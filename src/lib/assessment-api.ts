@@ -1,4 +1,15 @@
-const API_BASE_URL = (import.meta.env.VITE_ASSESSMENT_API_URL ?? "").replace(/\/$/, "");
+import { supabase } from "@/integrations/supabase/client";
+
+const CUSTOM_API = (import.meta.env.VITE_ASSESSMENT_API_URL ?? "").replace(/\/$/, "");
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "");
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
+/** Use Supabase edge function on deployed Lovable; local /api proxy in dev. */
+function useEdgeFunction() {
+  if (CUSTOM_API) return false;
+  if (import.meta.env.VITE_USE_ASSESSMENT_EDGE === "false") return false;
+  return Boolean(SUPABASE_URL && typeof window !== "undefined");
+}
 
 export type SpeakingPart = 1 | 2 | 3;
 
@@ -15,8 +26,26 @@ export type StartAssessmentResponse = {
 
 export type CriterionScore = {
   band: number;
+  criterion?: string;
   rationale?: string;
-  evidence?: string[];
+  evidence?: Array<{ quote?: string; observation?: string; feature?: string }> | string[];
+  feedback?: Array<{
+    issue?: string;
+    suggestion?: string;
+    example_from_candidate?: string;
+    upgraded_example?: string;
+  }>;
+  comparative_note?: string;
+};
+
+export type CriterionFeedback = {
+  criterion: string;
+  label: string;
+  band: number;
+  score_justification: string;
+  issue_found?: string;
+  area_of_improvement: string;
+  example?: string;
 };
 
 export type Scorecard = {
@@ -26,6 +55,8 @@ export type Scorecard = {
 
 export type AssessmentReport = {
   spoken_overview?: string;
+  criteria_feedback?: CriterionFeedback[];
+  final_summary?: string;
   focus_criterion?: string;
   next_steps?: string[];
 };
@@ -39,9 +70,7 @@ export type PartScore = {
 };
 
 export type ScoreAssessmentResponse = {
-  // Overall (average of the parts) — used for the headline display.
   scorecard?: Scorecard;
-  // Per-part breakdown — persisted as one row per part (Part 1/2/3).
   by_part?: PartScore[];
   report?: AssessmentReport;
   notes?: Record<string, unknown>;
@@ -53,12 +82,29 @@ type RequestOptions = RequestInit & {
   query?: Record<string, string>;
 };
 
+async function authHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {};
+  if (useEdgeFunction() && SUPABASE_KEY) {
+    headers.apikey = SUPABASE_KEY;
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 function apiUrl(path: string, query?: Record<string, string>) {
-  const url = new URL(`${API_BASE_URL}${path}`, window.location.origin);
-  Object.entries(query ?? {}).forEach(([key, value]) => {
-    url.searchParams.set(key, value);
-  });
-  return API_BASE_URL ? url.toString() : `${url.pathname}${url.search}`;
+  if (useEdgeFunction()) {
+    const suffix = path.replace(/^\/api/, "");
+    const url = new URL(`${SUPABASE_URL}/functions/v1/assessment${suffix}`);
+    Object.entries(query ?? {}).forEach(([key, value]) => url.searchParams.set(key, value));
+    return url.toString();
+  }
+
+  const base = CUSTOM_API || "";
+  const url = new URL(`${base}${path}`, window.location.origin);
+  Object.entries(query ?? {}).forEach(([key, value]) => url.searchParams.set(key, value));
+  return base ? url.toString() : `${url.pathname}${url.search}`;
 }
 
 async function requestJson<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -67,6 +113,7 @@ async function requestJson<T>(path: string, options: RequestOptions = {}): Promi
     ...init,
     headers: {
       ...(init.body ? { "Content-Type": "application/json" } : {}),
+      ...(await authHeaders()),
       ...headers,
     },
   });

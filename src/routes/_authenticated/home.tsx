@@ -4,6 +4,7 @@ import { AppShell } from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { ScoreProgressBar } from "@/components/ScoreProgressBar";
 import { ArrowRight, BookOpen, Clock, Play } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -59,7 +60,10 @@ function HomePage() {
     <AppShell>
       <div className="mb-6">
         <p className="text-sm text-muted-foreground">Day 1 of your plan</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Hi {name} 👋</h1>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+          Hi, {name}
+          <span aria-hidden="true"> 👋</span>
+        </h1>
       </div>
 
       {/* Today focus */}
@@ -81,25 +85,7 @@ function HomePage() {
         <Card className="border-border/70 p-5">
           <div className="space-y-3">
             {criteria.map((c) => (
-              <div key={c.label}>
-                <div className="mb-1 flex justify-between text-xs">
-                  <span className="text-muted-foreground">{c.label}</span>
-                  <span className="font-semibold text-foreground">{c.value.toFixed(1)}</span>
-                </div>
-                <div
-                  className="h-2 rounded-full bg-muted"
-                  role="progressbar"
-                  aria-valuenow={c.value}
-                  aria-valuemin={0}
-                  aria-valuemax={9}
-                  aria-label={`${c.label} band score`}
-                >
-                  <div
-                    className="h-2 rounded-full bg-primary"
-                    style={{ width: `${(c.value / 9) * 100}%` }}
-                  />
-                </div>
-              </div>
+              <ScoreProgressBar key={c.label} label={c.label} value={c.value} />
             ))}
           </div>
         </Card>
