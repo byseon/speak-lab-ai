@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/BottomNav";
-import { LiveAssessmentSession } from "@/components/LiveAssessmentSession";
+import { TavusEmbedSession } from "@/components/TavusEmbedSession";
 
 export const Route = createFileRoute("/_authenticated/mock")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Mock — SpeakLab" }] }),
   component: MockPage,
 });
@@ -13,12 +14,11 @@ function MockPage() {
 
   return (
     <AppShell wide>
-      <LiveAssessmentSession
+      <TavusEmbedSession
         username={username}
-        userId={user.id}
         title="Free mock"
-        description="Run a full IELTS Speaking simulation with a live Tavus examiner, then score the ended transcript through the Python assessment backend."
-        defaultParts={[1, 2, 3]}
+        description="A full IELTS Speaking simulation with Mary, your AI examiner. Allow camera and microphone to join the video call."
+        mode="exam"
       />
     </AppShell>
   );

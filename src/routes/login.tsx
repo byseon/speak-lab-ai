@@ -1,11 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AuthFormAlert, AuthFormField } from "@/components/AuthFormField";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/components/AuthShell";
-import { toast } from "sonner";
+import {
+  firstErrorField,
+  hasFieldErrors,
+  parseAuthError,
+  validateAuthForm,
+  type AuthFieldErrors,
+} from "@/lib/auth-errors";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Log in — SpeakLab" }] }),
@@ -14,24 +19,50 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<AuthFieldErrors>({});
   const [loading, setLoading] = useState(false);
+
+  function clearFieldError(field: keyof AuthFieldErrors) {
+    setFieldErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function applyErrors(errors: AuthFieldErrors) {
+    setFieldErrors(errors);
+    const focusTarget = firstErrorField(errors);
+    if (focusTarget === "email") emailRef.current?.focus();
+    if (focusTarget === "password") passwordRef.current?.focus();
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setErrorMessage("");
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      const message = error.message.toLowerCase().includes("confirm")
-        ? "Please confirm your email first, then log in again."
-        : error.message;
-      setErrorMessage(message);
-      return toast.error(message);
+    const validationErrors = validateAuthForm({ email, password }, "login");
+    if (hasFieldErrors(validationErrors)) {
+      applyErrors(validationErrors);
+      return;
     }
+
+    setFieldErrors({});
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    setLoading(false);
+
+    if (error) {
+      applyErrors(parseAuthError(error.message, "login"));
+      return;
+    }
+
     navigate({ to: "/home" });
   }
 
@@ -48,34 +79,36 @@ function LoginPage() {
         </>
       }
     >
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        {errorMessage ? (
-          <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            {errorMessage}
-          </p>
-        ) : null}
+      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <AuthFormField
+          id="email"
+          label="Email"
+          type="email"
+          autoComplete="email"
+          required
+          value={email}
+          error={fieldErrors.email}
+          onChange={(value) => {
+            setEmail(value);
+            clearFieldError("email");
+            clearFieldError("form");
+          }}
+        />
+        <AuthFormField
+          id="password"
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          required
+          value={password}
+          error={fieldErrors.password}
+          onChange={(value) => {
+            setPassword(value);
+            clearFieldError("password");
+            clearFieldError("form");
+          }}
+        />
+        {fieldErrors.form ? <AuthFormAlert message={fieldErrors.form} /> : null}
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Logging in…" : "Log in"}
         </Button>

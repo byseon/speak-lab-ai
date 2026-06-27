@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
-import { LiveAssessmentSession } from "@/components/LiveAssessmentSession";
+import { TavusEmbedSession } from "@/components/TavusEmbedSession";
 
 export const Route = createFileRoute("/demo")({
   ssr: false,
@@ -19,11 +19,10 @@ function DemoPage() {
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>
-        <LiveAssessmentSession
-          username="guest"
+        <TavusEmbedSession
           title="SpeakLab live demo"
-          description="Start a real Tavus IELTS Speaking examiner session without logging in. End the call when you are done, then score the transcript through the Python backend."
-          defaultParts={[1, 2, 3]}
+          description="Talk to Mary, your IELTS examiner — no login required. Allow camera and microphone to start."
+          mode="exam"
         />
       </div>
     </div>
