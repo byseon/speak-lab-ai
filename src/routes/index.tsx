@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -38,10 +39,11 @@ export const Route = createFileRoute("/")({
 });
 
 function CTA({ className = "" }: { className?: string }) {
+  const { t } = useTranslation("common");
   return (
-    <Button asChild size="lg" className={`shadow-[var(--shadow-soft)] ${className}`}>
+    <Button asChild size="lg" className={`w-full sm:w-auto shadow-[var(--shadow-soft)] ${className}`}>
       <Link to="/signup">
-        Take your free mock <ArrowRight className="ml-2 h-4 w-4" />
+        {t("cta.takeFreeMock")} <ArrowRight className="ml-2 h-4 w-4" />
       </Link>
     </Button>
   );
@@ -62,6 +64,7 @@ function Section({
 }
 
 function Landing() {
+  const { t } = useTranslation("landing");
   return (
     <div className="min-h-screen bg-background font-sans text-foreground antialiased">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5">
@@ -73,29 +76,32 @@ function Landing() {
         </Link>
         <div className="flex items-center gap-3">
           <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground">
-            Log in
+            {useTranslation("common").t("cta.logIn")}
           </Link>
           <Button asChild variant="default" size="sm">
-            <Link to="/signup">Start free</Link>
+            <Link to="/signup">{useTranslation("common").t("cta.startFree")}</Link>
           </Button>
         </div>
       </header>
 
       <section className="relative" style={{ background: "var(--gradient-hero)" }}>
-        <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-20 sm:py-28 lg:grid-cols-2 lg:items-center">
-          <div>
+        <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-14 sm:py-20 lg:py-28 lg:grid-cols-2 lg:items-center">
+          <div className="min-w-0">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
-              <Sparkles className="h-3 w-3 text-primary" /> Built for IELTS Speaking
+              <Sparkles className="h-3 w-3 text-primary" /> {t("hero.eyebrow")}
             </div>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Practice IELTS Speaking with a <span className="text-primary">real AI examiner</span>
+            <h1 className="text-balance text-3xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+              {t("hero.headlinePrefix")}{" "}
+              <span className="text-primary">{t("hero.headlineHighlight")}</span>
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-muted-foreground">
-              Face-to-face video practice for Parts 1, 2, and 3. Get a band score and a plan built from your mock.
+            <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
+              {t("hero.subhead")}
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <CTA />
-              <span className="text-xs text-muted-foreground">No credit card. 1 free mock.</span>
+              <span className="text-center text-xs text-muted-foreground sm:text-left">
+                {t("hero.ctaNote")}
+              </span>
             </div>
           </div>
 
@@ -105,20 +111,29 @@ function Landing() {
                 <div className="flex h-full flex-col justify-between p-5">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-                    Live session · Part 2
+                    {t("hero.session.liveLabel")}
                   </div>
                   <div className="rounded-xl border border-border bg-card/85 p-4 backdrop-blur">
-                    <div className="text-xs uppercase tracking-wide text-muted-foreground">Examiner</div>
+                    <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                      {t("hero.session.examinerLabel")}
+                    </div>
                     <p className="mt-1 text-sm font-medium">
-                      Describe a place where you like to read. You have one minute to prepare.
+                      {t("hero.session.examinerPrompt")}
                     </p>
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-4 gap-3 p-5 text-center">
-                {[["Fluency", "6.0"], ["Lexical", "5.5"], ["Grammar", "6.0"], ["Pronun.", "6.5"]].map(([k, v]) => (
+                {([
+                  ["fluency", "6.0"],
+                  ["lexical", "5.5"],
+                  ["grammar", "6.0"],
+                  ["pronunciation", "6.5"],
+                ] as const).map(([k, v]) => (
                   <div key={k} className="rounded-lg bg-muted px-2 py-2">
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{k}</div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                      {t(`hero.session.criteria.${k}`)}
+                    </div>
                     <div className="text-lg font-semibold text-foreground">{v}</div>
                   </div>
                 ))}
