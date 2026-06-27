@@ -1,0 +1,52 @@
+{
+  "intro": {
+    "title": "Free mock",
+    "subtitle": "A full 14-minute IELTS Speaking simulation with an AI examiner."
+  },
+  "parts": {
+    "title": "Which parts?",
+    "subtitle": "All three is the standard mock.",
+    "part1": "Part 1 — Interview",
+    "part1Desc": "Familiar topics, ~4–5 min.",
+    "part2": "Part 2 — Long turn",
+    "part2Desc": "Cue card monologue, ~3–4 min.",
+    "part3": "Part 3 — Discussion",
+    "part3Desc": "Abstract follow-ups, ~4–5 min."
+  },
+  "ready": {
+    "title": "Before you start",
+    "camera": "You'll need to allow camera and microphone access.",
+    "quiet": "Find a quiet space — the examiner listens to everything.",
+    "duration": "Plan for about 14 minutes uninterrupted."
+  },
+  "actions": {
+    "start": "Start mock",
+    "starting": "Starting…",
+    "end": "End mock",
+    "ending": "Ending…",
+    "endPractice": "End session",
+    "selectAtLeastOne": "Select at least one part."
+  },
+  "live": {
+    "title": "Mock in progress",
+    "status": {
+      "connecting": "Connecting to your examiner…",
+      "live": "Live with examiner",
+      "ending": "Ending session…",
+      "ended": "Session ended"
+    },
+    "iframeLabel": "AI examiner video conversation",
+    "allowPrompt": "If prompted, allow camera and microphone.",
+    "noUrl": "We couldn't load your session. Please start a new mock."
+  },
+  "report": {
+    "title": "Processing your results",
+    "subtitle": "We're saving your conversation. Your band score and personalized plan will appear here once scoring is wired up.",
+    "session": "Session",
+    "backHome": "Back to home"
+  },
+  "errors": {
+    "missingConfig": "Tavus isn't configured yet. Add TAVUS_API_KEY and TAVUS_FACE_ID in Project Settings → Secrets.",
+    "generic": "Something went wrong starting your mock. Please try again."
+  }
+}
