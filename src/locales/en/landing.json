@@ -16,5 +16,123 @@
         "pronunciation": "Pronun."
       }
     }
+  },
+  "socialProof": {
+    "line": "Built for IELTS · Official 4 criteria · AI video",
+    "badges": [
+      "IELTS Parts 1–3",
+      "Fluency",
+      "Vocabulary",
+      "Grammar",
+      "Pronunciation",
+      "Student-first"
+    ]
+  },
+  "problem": {
+    "headline": "The speaking test is the one you can't cram",
+    "body": "The IELTS Speaking test is an 11–14 minute face-to-face interview. There is no text to read. The examiner listens, follows up, and reacts to what you say. Reading sample answers won't prepare you for that."
+  },
+  "howItWorks": {
+    "headline": "How it works",
+    "subhead": "Three steps. Start in under a minute.",
+    "steps": [
+      {
+        "n": "01",
+        "title": "Take a full mock",
+        "body": "Parts 1, 2, and 3 with an AI video examiner, just like test day."
+      },
+      {
+        "n": "02",
+        "title": "See your band on 4 criteria",
+        "body": "Fluency, Lexical resource, Grammar, and Pronunciation."
+      },
+      {
+        "n": "03",
+        "title": "Follow your daily plan",
+        "body": "Practice targets your weak areas from each mock."
+      }
+    ]
+  },
+  "differentiator": {
+    "eyebrow": "The difference",
+    "headline": "Not audio flashcards — a person asks you questions",
+    "body": "SpeakLab puts you in a video conversation with an AI examiner. You hear the question, you answer out loud, and you get feedback on what you actually said — not a multiple-choice guess.",
+    "visual": {
+      "prompt": "Tell me about a time you helped someone.",
+      "answer": "Well, last month my neighbour…"
+    }
+  },
+  "personalization": {
+    "headline": "Every mock updates your plan",
+    "body": "After each mock, SpeakLab finds your weakest criterion and part. Your daily sessions focus there — Part 2 cue cards if you run short, Part 3 discussions if abstract answers are hard, vocabulary drills if lexical resource is low.",
+    "chart": {
+      "weakestLabel": "Your weakest area",
+      "weakestValue": "Lexical resource",
+      "currentLabel": "Current band",
+      "currentValue": "5.0",
+      "rows": [
+        { "label": "Fluency", "value": 5.5 },
+        { "label": "Lexical", "value": 5.0 },
+        { "label": "Grammar", "value": 5.5 },
+        { "label": "Pronunciation", "value": 6.0 }
+      ]
+    }
+  },
+  "mockVsPractice": {
+    "headline": "Exam mode when you're ready. Practice when you're learning.",
+    "columns": { "mock": "Mock exam", "practice": "Practice" },
+    "rows": [
+      { "label": "Purpose", "mock": "Simulate test day", "practice": "Build specific skills" },
+      { "label": "Format", "mock": "Full Parts 1–3, timed", "practice": "Targeted activities from your plan" },
+      { "label": "Hints", "mock": "None", "practice": "Scaffolds and feedback after each turn" },
+      { "label": "Output", "mock": "Band report + new plan", "practice": "Session summary + tomorrow's focus" }
+    ]
+  },
+  "forStudents": {
+    "headline": "Built for learners, not parents",
+    "body": "Plain English UI. Encouraging feedback — not red marks on every mistake. Mobile-first so you can practice between classes. Parents can get progress summaries; the app is for you."
+  },
+  "pricing": {
+    "headline": "Start with a free mock",
+    "body": "Your first full mock and band report are free. Unlock unlimited practice and mock exams with a plan — pricing TBD for launch."
+  },
+  "faq": {
+    "headline": "Frequently asked questions",
+    "items": [
+      {
+        "q": "Is this like the real IELTS Speaking test?",
+        "a": "We simulate the same three-part structure, timing, and face-to-face format. The AI examiner asks follow-up questions and does not show you text to read during Parts 1 and 3 — similar to the real test."
+      },
+      {
+        "q": "How is my band score calculated?",
+        "a": "Your mock is scored on the four official IELTS Speaking criteria: Fluency and coherence, Lexical resource, Grammatical range and accuracy, and Pronunciation."
+      },
+      {
+        "q": "Do I need a camera and microphone?",
+        "a": "Yes. Speaking practice requires a microphone. A camera is recommended for the video examiner experience and to build comfort speaking on camera."
+      },
+      {
+        "q": "Can I practice only Part 2?",
+        "a": "Your daily plan is personalized from your mocks, but you can explore practice by part anytime after signup."
+      },
+      {
+        "q": "Who is SpeakLab for?",
+        "a": "English learners preparing for IELTS Speaking — especially students who want realistic practice without booking a human tutor for every session."
+      },
+      {
+        "q": "Is SpeakLab affiliated with IELTS?",
+        "a": "No. SpeakLab is independent prep practice. IELTS is a registered trademark of its owners."
+      }
+    ]
+  },
+  "footer": {
+    "headline": "Your next mock is 14 minutes away",
+    "subhead": "Sign up, take your free mock, and get a plan built for you.",
+    "links": {
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "contact": "Contact"
+    },
+    "copyright": "© {{year}} SpeakLab"
   }
 }
