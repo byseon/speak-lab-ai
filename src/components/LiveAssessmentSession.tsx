@@ -347,9 +347,6 @@ export function LiveAssessmentSession({
               <Mic className="h-6 w-6" />
             </span>
             <h2 className="mt-4 text-lg font-semibold">Ready for a live examiner</h2>
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              Start creates a real Tavus video conversation from the Python backend.
-            </p>
           </div>
         </div>
       )}
