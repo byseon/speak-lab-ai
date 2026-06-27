@@ -23,10 +23,18 @@ function Part2SpeakPage() {
   const navigate = useNavigate();
   const [remaining, setRemaining] = useState(TOTAL_SECONDS);
   const [cueOpen, setCueOpen] = useState(false);
-  const [announcement, setAnnouncement] = useState(
-    t("part2.speak.announcements.started"),
-  );
+  const [announcement, setAnnouncement] = useState("");
   const endedRef = useRef(false);
+
+  // Announce "started" after mount so the live region fires (live regions
+  // ignore content present on initial render).
+  useEffect(() => {
+    const id = window.setTimeout(
+      () => setAnnouncement(t("part2.speak.announcements.started")),
+      150,
+    );
+    return () => window.clearTimeout(id);
+  }, [t]);
 
   // Countdown
   useEffect(() => {
@@ -74,7 +82,6 @@ function Part2SpeakPage() {
           </h1>
           <span
             className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium"
-            aria-live="polite"
           >
             <span
               aria-hidden="true"
