@@ -176,6 +176,7 @@ export async function saveAssessmentArtifacts({
   if (!parts.length) return;
 
   const now = new Date().toISOString();
+  const overall = averageBands(parts);
 
   const resultRows = parts.map((p) => ({
     mock_session_id: mockSessionId,
@@ -202,7 +203,8 @@ export async function saveAssessmentArtifacts({
     tavus_conversation_id: conversationId,
     part: p.part,
     raw_transcript: toJson(p.raw_transcript ?? rawTranscript ?? {}),
-    candidate_text: p.candidate_text ?? null,
+    candidate_text:
+      p.candidate_text ?? extractCandidateText(p.raw_transcript ?? rawTranscript) ?? null,
     source: "tavus",
     captured_at: now,
   }));
@@ -211,8 +213,6 @@ export async function saveAssessmentArtifacts({
     .upsert(transcriptRows, { onConflict: "mock_session_id,part" });
   if (transcriptError) throw transcriptError;
 
-  // Session headline = average of the parts (one progress row per session).
-  const overall = averageBands(parts);
   const assessmentResultId =
     savedResults?.find((row) => row.part === parts[0]?.part)?.id ?? savedResults?.[0]?.id ?? null;
 
@@ -233,8 +233,8 @@ export async function saveAssessmentArtifacts({
     .update({
       status: "scored",
       scored_at: now,
-      updated_at: now,
       ...overall,
+      updated_at: now,
     })
     .eq("id", mockSessionId);
 

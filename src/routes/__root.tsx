@@ -81,23 +81,68 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "SpeakLab — IELTS Speaking practice with an AI examiner" },
-      { name: "description", content: "Face-to-face IELTS Speaking practice for Parts 1, 2, and 3. Get a band score and a personalized plan from your mock." },
+      {
+        name: "description",
+        content:
+          "Face-to-face IELTS Speaking practice for Parts 1, 2, and 3. Get a band score and a personalized plan from your mock.",
+      },
       { property: "og:title", content: "SpeakLab — IELTS Speaking practice with an AI examiner" },
-      { property: "og:description", content: "Face-to-face IELTS Speaking practice for Parts 1, 2, and 3. Get a band score and a personalized plan from your mock." },
+      {
+        property: "og:description",
+        content:
+          "Face-to-face IELTS Speaking practice for Parts 1, 2, and 3. Get a band score and a personalized plan from your mock.",
+      },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "SpeakLab" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "SpeakLab — IELTS Speaking practice with an AI examiner" },
-      { name: "twitter:description", content: "Face-to-face IELTS Speaking practice for Parts 1, 2, and 3. Get a band score and a personalized plan from your mock." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0f959fa5-7277-4e31-a7a3-64d9b5a53f0d/id-preview-e6f688a6--0310155f-b8b5-4b53-8493-1f3f9e04411b.lovable.app-1782593393010.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0f959fa5-7277-4e31-a7a3-64d9b5a53f0d/id-preview-e6f688a6--0310155f-b8b5-4b53-8493-1f3f9e04411b.lovable.app-1782593393010.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Face-to-face IELTS Speaking practice for Parts 1, 2, and 3. Get a band score and a personalized plan from your mock.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0f959fa5-7277-4e31-a7a3-64d9b5a53f0d/id-preview-e6f688a6--0310155f-b8b5-4b53-8493-1f3f9e04411b.lovable.app-1782593393010.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0f959fa5-7277-4e31-a7a3-64d9b5a53f0d/id-preview-e6f688a6--0310155f-b8b5-4b53-8493-1f3f9e04411b.lovable.app-1782593393010.png",
+      },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "SpeakLab",
+              url: "https://ielts-pal-ai.lovable.app/",
+              logo: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0f959fa5-7277-4e31-a7a3-64d9b5a53f0d/id-preview-e6f688a6--0310155f-b8b5-4b53-8493-1f3f9e04411b.lovable.app-1782593393010.png",
+            },
+            {
+              "@type": "WebSite",
+              name: "SpeakLab",
+              url: "https://ielts-pal-ai.lovable.app/",
+            },
+          ],
+        }),
       },
     ],
   }),

@@ -40,7 +40,7 @@ function HomePage() {
     supabase
       .from("profiles")
       .select("target_band")
-      .eq("id", user.id)
+      .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         if (!active) return;

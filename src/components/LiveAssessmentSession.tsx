@@ -202,22 +202,6 @@ export function LiveAssessmentSession({
     return result;
   };
 
-  const scoreNow = async () => {
-    setIsBusy(true);
-    setError("");
-    setSaveMessage("");
-    setStatus("Scoring transcript...");
-
-    try {
-      await scoreConversation();
-    } catch (cause) {
-      setError(renderErrorMessage(cause));
-      setStatus("Score not ready");
-    } finally {
-      setIsBusy(false);
-    }
-  };
-
   const endAndScore = async () => {
     if (!conversationId) return;
 
@@ -366,10 +350,6 @@ export function LiveAssessmentSession({
                     <Square className="h-4 w-4" />
                   )}
                   End and score
-                </Button>
-                <Button variant="outline" onClick={scoreNow} disabled={isBusy}>
-                  <Mic className="h-4 w-4" />
-                  Score
                 </Button>
                 <Button
                   variant="ghost"
