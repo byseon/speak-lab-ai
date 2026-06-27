@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Camera, Clock, Loader2, Volume2 } from "lucide-react";
 import { startConversation, type TavusPart } from "@/lib/tavus";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/mock")({
   head: () => ({ meta: [{ title: "Mock — SpeakLab" }] }),

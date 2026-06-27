@@ -5,7 +5,7 @@ import { z } from "zod";
 import { AppShell } from "@/components/BottomNav";
 import { ConversationShell, type ConversationStatus } from "@/components/ConversationShell";
 import { endConversation } from "@/lib/tavus";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 const searchSchema = z.object({
   c: z.string().min(1),
