@@ -46,6 +46,25 @@ def test_transcript_messages_reads_early_nested_turns():
     assert candidate_text(conv) == "It is a quiet coastal city."
 
 
+def test_candidate_text_accepts_non_user_tavus_roles():
+    conv = {
+        "events": [
+            {
+                "event_type": "application.transcription_ready",
+                "properties": {
+                    "transcript": [
+                        {"role": "assistant", "content": "What do you study?"},
+                        {"role": "customer", "content": "I study economics."},
+                        {"role": "speaker_0", "content": "I also work part time."},
+                    ],
+                },
+            },
+        ],
+    }
+
+    assert candidate_text(conv) == "I study economics. I also work part time."
+
+
 def test_not_ready_returns_empty():
     conv = {"events": [{"event_type": "system.replica_joined", "properties": {}}]}
 

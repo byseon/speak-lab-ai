@@ -38,6 +38,39 @@ def _role(value: dict) -> str:
     return str(value.get("role") or value.get("speaker") or value.get("type") or "").lower()
 
 
+def is_candidate_role(role: str) -> bool:
+    normalized = role.strip().lower()
+    candidate_roles = {
+        "user",
+        "candidate",
+        "participant",
+        "human",
+        "customer",
+        "caller",
+        "student",
+        "guest",
+        "speaker_0",
+        "speaker 0",
+    }
+    examiner_roles = {
+        "assistant",
+        "system",
+        "examiner",
+        "agent",
+        "replica",
+        "ai",
+        "bot",
+        "pal",
+        "speaker_1",
+        "speaker 1",
+    }
+    if normalized in candidate_roles:
+        return True
+    if normalized in examiner_roles:
+        return False
+    return bool(normalized and not any(marker in normalized for marker in examiner_roles))
+
+
 def _coerce_messages(value: Any) -> list[dict]:
     """Normalize Tavus transcript-like shapes to [{role, content}, ...]."""
     out: list[dict] = []
@@ -99,7 +132,7 @@ def candidate_text(conv: dict) -> str:
     """Concatenate the candidate's (user) utterances into one string."""
     parts = []
     for m in transcript_messages(conv):
-        if m.get("role") in {"user", "candidate", "participant", "human"}:
+        if is_candidate_role(str(m.get("role") or "")):
             c = m.get("content")
             if isinstance(c, str) and c.strip():
                 parts.append(c.strip())

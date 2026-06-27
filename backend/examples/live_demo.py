@@ -31,7 +31,12 @@ from assessment.webhook import ConversationStore, handle_event
 from assessment.quickscore import score_transcript
 from assessment.session import CoachingSession
 from assessment.tavus_tools import scorecard_from_event
-from assessment.transcript import candidate_text, transcript_messages, transcript_ready
+from assessment.transcript import (
+    candidate_text,
+    is_candidate_role,
+    transcript_messages,
+    transcript_ready,
+)
 
 TAVUS = "https://tavusapi.com/v2"
 STORE = ConversationStore()
@@ -116,7 +121,7 @@ def score_parts(conv: dict, parts: list[int], full_text: str) -> list[dict]:
     messages = [
         m.get("content", "").strip()
         for m in transcript_messages(conv)
-        if m.get("role") == "user" and isinstance(m.get("content"), str)
+        if is_candidate_role(str(m.get("role") or "")) and isinstance(m.get("content"), str)
         and m.get("content", "").strip()
     ]
     chunks = split_candidate_chunks(messages, selected, full_text)
