@@ -1,9 +1,15 @@
 // In local dev, prefer VITE_ASSESSMENT_API_URL (Python backend via ngrok or vite proxy).
-// In production, route /api/* to the Supabase edge function `assessment`.
+// Otherwise route /api/* to the Lovable Cloud edge function `assessment`.
 const EXPLICIT_BASE = (import.meta.env.VITE_ASSESSMENT_API_URL ?? "").replace(/\/$/, "");
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "");
+const SUPABASE_URL = (
+  import.meta.env.VITE_SUPABASE_URL ??
+  process.env.SUPABASE_URL ??
+  ""
+).replace(/\/$/, "");
 const SUPABASE_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
   import.meta.env.VITE_SUPABASE_ANON_KEY ??
+  process.env.SUPABASE_PUBLISHABLE_KEY ??
+  process.env.SUPABASE_ANON_KEY ??
   "") as string;
 
 /** Use Supabase edge function on deployed Lovable; local /api proxy in dev. */
