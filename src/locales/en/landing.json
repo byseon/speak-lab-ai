@@ -1,0 +1,20 @@
+{
+  "hero": {
+    "eyebrow": "Built for IELTS Speaking",
+    "headlinePrefix": "Practice IELTS Speaking with a",
+    "headlineHighlight": "real AI examiner",
+    "subhead": "Face-to-face video practice for Parts 1, 2, and 3. Get a band score and a plan built from your mock.",
+    "ctaNote": "No credit card. 1 free mock.",
+    "session": {
+      "liveLabel": "Live session · Part 2",
+      "examinerLabel": "Examiner",
+      "examinerPrompt": "Describe a place where you like to read. You have one minute to prepare.",
+      "criteria": {
+        "fluency": "Fluency",
+        "lexical": "Lexical",
+        "grammar": "Grammar",
+        "pronunciation": "Pronun."
+      }
+    }
+  }
+}
