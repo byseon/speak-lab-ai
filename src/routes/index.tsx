@@ -65,6 +65,7 @@ function Section({
 
 function Landing() {
   const { t } = useTranslation("landing");
+  const { t: tCommon } = useTranslation("common");
   return (
     <div className="min-h-screen bg-background font-sans text-foreground antialiased">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5">
@@ -76,10 +77,10 @@ function Landing() {
         </Link>
         <div className="flex items-center gap-3">
           <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground">
-            {useTranslation("common").t("cta.logIn")}
+            {tCommon("cta.logIn")}
           </Link>
           <Button asChild variant="default" size="sm">
-            <Link to="/signup">{useTranslation("common").t("cta.startFree")}</Link>
+            <Link to="/signup">{tCommon("cta.startFree")}</Link>
           </Button>
         </div>
       </header>
