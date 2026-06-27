@@ -30,8 +30,19 @@ export type AssessmentReport = {
   next_steps?: string[];
 };
 
+export type PartScore = {
+  part: SpeakingPart;
+  scorecard: Scorecard;
+  coaching?: Record<string, unknown>;
+  raw_transcript?: Record<string, unknown>;
+  candidate_text?: string | null;
+};
+
 export type ScoreAssessmentResponse = {
+  // Overall (average of the parts) — used for the headline display.
   scorecard?: Scorecard;
+  // Per-part breakdown — persisted as one row per part (Part 1/2/3).
+  by_part?: PartScore[];
   report?: AssessmentReport;
   notes?: Record<string, unknown>;
   transcript_chars?: number;

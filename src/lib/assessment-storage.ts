@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type {
+  PartScore,
   ScoreAssessmentResponse,
   Scorecard,
   SpeakingPart,
@@ -29,6 +30,31 @@ function criterionBands(scorecard: Scorecard): CriterionBands {
     lexical_band: band(scorecard, "lexical_resource"),
     grammar_band: band(scorecard, "grammatical_range_accuracy"),
     pronunciation_band: band(scorecard, "pronunciation"),
+  };
+}
+
+type OverallBands = CriterionBands & { overall_band: number | null };
+
+// Session overall = the simple average of the parts, rounded to the nearest
+// IELTS half-band. (A primary-part weighting can replace this later.)
+function averageBands(parts: PartScore[]): OverallBands {
+  const rows = parts.map((p) => ({
+    overall_band: p.scorecard.overall_band,
+    ...criterionBands(p.scorecard),
+  }));
+  const mean = (key: keyof OverallBands): number | null => {
+    const vals = rows
+      .map((r) => r[key])
+      .filter((v): v is number => typeof v === "number");
+    if (!vals.length) return null;
+    return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 2) / 2;
+  };
+  return {
+    overall_band: mean("overall_band"),
+    fluency_band: mean("fluency_band"),
+    lexical_band: mean("lexical_band"),
+    grammar_band: mean("grammar_band"),
+    pronunciation_band: mean("pronunciation_band"),
   };
 }
 
@@ -84,60 +110,53 @@ export async function saveAssessmentArtifacts({
   score: ScoreAssessmentResponse;
   rawTranscript?: Record<string, unknown>;
 }) {
-  if (!score.scorecard) return;
+  // Per-part model: one assessment_results + one transcripts row per part.
+  const parts = score.by_part ?? [];
+  if (!parts.length) return;
 
-  const bands = criterionBands(score.scorecard);
   const now = new Date().toISOString();
 
-  const { data: result, error: resultError } = await supabase
+  const resultRows = parts.map((p) => ({
+    mock_session_id: mockSessionId,
+    user_id: userId,
+    part: p.part,
+    overall_band: p.scorecard.overall_band,
+    ...criterionBands(p.scorecard),
+    scorecard: toJson(p.scorecard),
+    coaching: toJson(p.coaching ?? {}),
+  }));
+  const { error: resultError } = await supabase
     .from("assessment_results")
-    .upsert(
-      {
-        mock_session_id: mockSessionId,
-        user_id: userId,
-        overall_band: score.scorecard.overall_band,
-        ...bands,
-        scorecard: toJson(score.scorecard),
-        report: score.report ? toJson(score.report) : null,
-        notes: score.notes ? toJson(score.notes) : null,
-        transcript_chars: score.transcript_chars ?? null,
-      },
-      { onConflict: "mock_session_id" },
-    )
-    .select("id")
-    .single();
-
+    .upsert(resultRows, { onConflict: "mock_session_id,part" });
   if (resultError) throw resultError;
 
-  if (rawTranscript) {
-    const { error: transcriptError } = await supabase.from("transcripts").upsert(
-      {
-        mock_session_id: mockSessionId,
-        user_id: userId,
-        tavus_conversation_id: conversationId,
-        raw_transcript: toJson(rawTranscript),
-        candidate_text: null,
-        source: "tavus",
-        captured_at: now,
-      },
-      { onConflict: "mock_session_id" },
-    );
+  const transcriptRows = parts.map((p) => ({
+    mock_session_id: mockSessionId,
+    user_id: userId,
+    tavus_conversation_id: conversationId,
+    part: p.part,
+    raw_transcript: toJson(p.raw_transcript ?? rawTranscript ?? {}),
+    candidate_text: p.candidate_text ?? null,
+    source: "tavus",
+    captured_at: now,
+  }));
+  const { error: transcriptError } = await supabase
+    .from("transcripts")
+    .upsert(transcriptRows, { onConflict: "mock_session_id,part" });
+  if (transcriptError) throw transcriptError;
 
-    if (transcriptError) throw transcriptError;
-  }
+  // Session headline = average of the parts (one progress row per session).
+  const overall = averageBands(parts);
 
   const { error: progressError } = await supabase.from("progress_history").upsert(
     {
       user_id: userId,
-      assessment_result_id: result.id,
       mock_session_id: mockSessionId,
-      overall_band: score.scorecard.overall_band,
-      ...bands,
+      ...overall,
       recorded_at: now,
     },
-    { onConflict: "assessment_result_id" },
+    { onConflict: "mock_session_id" },
   );
-
   if (progressError) throw progressError;
 
   const { error: sessionError } = await supabase
@@ -146,6 +165,7 @@ export async function saveAssessmentArtifacts({
       status: "scored",
       scored_at: now,
       updated_at: now,
+      ...overall,
     })
     .eq("id", mockSessionId);
 
