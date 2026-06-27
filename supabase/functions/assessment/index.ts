@@ -44,13 +44,116 @@ async function tavus(method: string, path: string, body?: unknown): Promise<any>
   return text ? JSON.parse(text) : {};
 }
 
-function transcriptMessages(conv: any): Array<{ role?: string; content?: string }> {
+const TRANSCRIPT_KEYS = [
+  "transcript",
+  "transcripts",
+  "messages",
+  "conversation_history",
+  "conversation",
+  "turns",
+  "utterances",
+];
+
+function textValue(value: any): string {
+  if (typeof value === "string") return value.trim();
+  if (Array.isArray(value)) {
+    return value.map(textValue).filter(Boolean).join(" ").trim();
+  }
+  if (value && typeof value === "object") {
+    for (const key of ["content", "text", "transcript", "message"]) {
+      const out = textValue(value[key]);
+      if (out) return out;
+    }
+  }
+  return "";
+}
+
+function roleValue(value: any): string {
+  return String(value?.role ?? value?.speaker ?? value?.type ?? "").toLowerCase();
+}
+
+function isCandidateRole(role: string): boolean {
+  const normalized = role.trim().toLowerCase();
+  const candidateRoles = new Set([
+    "user",
+    "candidate",
+    "participant",
+    "human",
+    "customer",
+    "caller",
+    "student",
+    "guest",
+    "speaker_0",
+    "speaker 0",
+  ]);
+  const examinerRoles = new Set([
+    "assistant",
+    "system",
+    "examiner",
+    "agent",
+    "replica",
+    "ai",
+    "bot",
+    "pal",
+    "speaker_1",
+    "speaker 1",
+  ]);
+
+  if (candidateRoles.has(normalized)) return true;
+  if (examinerRoles.has(normalized)) return false;
+  return Boolean(
+    normalized && !Array.from(examinerRoles).some((marker) => normalized.includes(marker)),
+  );
+}
+
+function coerceMessages(value: any): Array<{ role: string; content: string }> {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item) => item && typeof item === "object")
+      .map((item) => ({ role: roleValue(item), content: textValue(item) }))
+      .filter((item) => item.role && item.content);
+  }
+
+  if (value && typeof value === "object") {
+    const role = roleValue(value);
+    const content = textValue(value);
+    if (role && content) return [{ role, content }];
+  }
+  return [];
+}
+
+function findTranscriptMessages(value: any): Array<{ role: string; content: string }> {
+  if (!value || typeof value !== "object") return [];
+
+  for (const key of TRANSCRIPT_KEYS) {
+    const messages = coerceMessages(value[key]);
+    if (messages.length) return messages;
+  }
+
+  for (const nested of Object.values(value)) {
+    if (nested && typeof nested === "object") {
+      const messages = findTranscriptMessages(nested);
+      if (messages.length) return messages;
+    }
+  }
+  return [];
+}
+
+function transcriptMessages(conv: any): Array<{ role: string; content: string }> {
   const events = Array.isArray(conv?.events) ? conv.events : [];
   for (const e of events) {
     if (e?.event_type === "application.transcription_ready") {
-      const t = e?.properties?.transcript;
-      if (Array.isArray(t)) return t;
+      const messages = findTranscriptMessages(e?.properties);
+      if (messages.length) return messages;
     }
+  }
+
+  const messages = findTranscriptMessages(conv);
+  if (messages.length) return messages;
+
+  for (const e of events) {
+    const eventMessages = findTranscriptMessages(e?.properties ?? e);
+    if (eventMessages.length) return eventMessages;
   }
   return [];
 }
@@ -62,15 +165,15 @@ function transcriptReady(conv: any): boolean {
 
 function candidateText(conv: any): string {
   return transcriptMessages(conv)
-    .filter((m) => m.role === "user" && typeof m.content === "string" && m.content.trim())
-    .map((m) => (m.content as string).trim())
+    .filter((m) => isCandidateRole(m.role) && m.content.trim())
+    .map((m) => m.content.trim())
     .join(" ");
 }
 
 // ---------------- Scoring ----------------
 
 function tokens(text: string): string[] {
-  return (text.toLowerCase().match(/[a-z']+/g) ?? []);
+  return text.toLowerCase().match(/[a-z']+/g) ?? [];
 }
 
 /** Very simple MTLD approximation: avg run length until type-token ratio falls below 0.72. */
@@ -97,18 +200,56 @@ function mtld(words: string[], threshold = 0.72): number {
 }
 
 const BASIC_OVERUSE = new Set([
-  "good", "bad", "nice", "thing", "things", "stuff", "very", "really",
-  "a lot", "lots", "get", "got", "do", "make",
+  "good",
+  "bad",
+  "nice",
+  "thing",
+  "things",
+  "stuff",
+  "very",
+  "really",
+  "a lot",
+  "lots",
+  "get",
+  "got",
+  "do",
+  "make",
 ]);
 
 const SUBORDINATORS = new Set([
-  "because", "although", "though", "while", "whereas", "if", "unless",
-  "when", "whenever", "since", "after", "before", "until", "as",
-  "that", "which", "who", "whom", "whose", "where",
+  "because",
+  "although",
+  "though",
+  "while",
+  "whereas",
+  "if",
+  "unless",
+  "when",
+  "whenever",
+  "since",
+  "after",
+  "before",
+  "until",
+  "as",
+  "that",
+  "which",
+  "who",
+  "whom",
+  "whose",
+  "where",
 ]);
 
 const MODALS = new Set([
-  "can", "could", "may", "might", "shall", "should", "will", "would", "must", "ought",
+  "can",
+  "could",
+  "may",
+  "might",
+  "shall",
+  "should",
+  "will",
+  "would",
+  "must",
+  "ought",
 ]);
 
 function half(x: number): number {
@@ -116,10 +257,7 @@ function half(x: number): number {
 }
 
 type Criterion =
-  | "fluency_coherence"
-  | "lexical_resource"
-  | "grammatical_range_accuracy"
-  | "pronunciation";
+  "fluency_coherence" | "lexical_resource" | "grammatical_range_accuracy" | "pronunciation";
 
 function scoreTranscript(text: string) {
   const words = tokens(text);
@@ -127,9 +265,7 @@ function scoreTranscript(text: string) {
 
   // Lexical resource
   const lex = mtld(words);
-  const overused = Array.from(BASIC_OVERUSE).filter((w) =>
-    lowerText.includes(` ${w} `),
-  );
+  const overused = Array.from(BASIC_OVERUSE).filter((w) => lowerText.includes(` ${w} `));
   const lr = 5.0 + Math.min(2.5, lex / 30) - 0.4 * overused.length;
 
   // Grammar
@@ -191,7 +327,13 @@ function splitChunks(messages: string[], parts: number[], full: string): string[
   const words = (full || messages.join(" ")).split(/\s+/).filter(Boolean);
   if (!words.length) return parts.map(() => "");
   const size = Math.max(1, Math.ceil(words.length / parts.length));
-  return parts.map((_p, i) => words.slice(i * size, (i + 1) * size).join(" ").trim() || full);
+  return parts.map(
+    (_p, i) =>
+      words
+        .slice(i * size, (i + 1) * size)
+        .join(" ")
+        .trim() || full,
+  );
 }
 
 function scoreConversationFromConv(conv: any, selectedParts: number[]) {
@@ -199,8 +341,7 @@ function scoreConversationFromConv(conv: any, selectedParts: number[]) {
   if (!text) {
     if (!transcriptReady(conv)) {
       return {
-        error:
-          "transcript not ready yet — wait ~10-20s after ending the call, then try again.",
+        error: "transcript not ready yet — try again in a few seconds.",
       };
     }
     return { error: "no candidate speech found in the transcript." };
@@ -245,8 +386,8 @@ function scoreConversationFromConv(conv: any, selectedParts: number[]) {
 
   // Per-part breakdown — same shape as the Python backend
   const userMessages = transcriptMessages(conv)
-    .filter((m) => m.role === "user" && typeof m.content === "string" && m.content.trim())
-    .map((m) => (m.content as string).trim());
+    .filter((m) => isCandidateRole(m.role) && m.content.trim())
+    .map((m) => m.content.trim());
   const chunks = splitChunks(userMessages, parts, text);
   const by_part = parts.map((p, i) => {
     const chunk = chunks[i] || text;
@@ -309,7 +450,9 @@ Deno.serve(async (req) => {
       return json(200, {
         ok: Object.values(configured).every(Boolean),
         configured,
-        missing: Object.entries(configured).filter(([, v]) => !v).map(([k]) => k),
+        missing: Object.entries(configured)
+          .filter(([, v]) => !v)
+          .map(([k]) => k),
       });
     }
 
@@ -334,7 +477,10 @@ Deno.serve(async (req) => {
       const conv = await tavus("GET", `/conversations/${cid}?verbose=true`);
       const partsParam = url.searchParams.get("parts");
       const parts = partsParam
-        ? partsParam.split(",").map((p) => parseInt(p, 10)).filter((p) => [1, 2, 3].includes(p))
+        ? partsParam
+            .split(",")
+            .map((p) => parseInt(p, 10))
+            .filter((p) => [1, 2, 3].includes(p))
         : [1, 2, 3];
       const out = scoreConversationFromConv(conv, parts);
       return json(200, out);

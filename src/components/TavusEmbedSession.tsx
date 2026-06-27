@@ -134,16 +134,8 @@ export function TavusEmbedSession({
           }
         }
 
-        for (let attempt = 1; attempt <= 8; attempt += 1) {
-          setStatus(`Scoring your answers… (${attempt * 4}s)`);
-          await new Promise((resolve) => setTimeout(resolve, 4000));
-          try {
-            await scoreConversation(conversationId);
-            return;
-          } catch (cause) {
-            if (attempt === 8) throw cause;
-          }
-        }
+        setStatus("Scoring your answers…");
+        await scoreConversation(conversationId);
       } else {
         setStatus("Session stopped. Start speaking with Mary to receive a score.");
       }
