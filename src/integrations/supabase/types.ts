@@ -16,7 +16,6 @@ export type Database = {
     Tables: {
       assessment_results: {
         Row: {
-          coaching: Json
           created_at: string
           fluency_band: number | null
           grammar_band: number | null
@@ -25,7 +24,6 @@ export type Database = {
           mock_session_id: string
           notes: Json | null
           overall_band: number | null
-          part: number
           pronunciation_band: number | null
           report: Json | null
           scorecard: Json
@@ -34,7 +32,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          coaching?: Json
           created_at?: string
           fluency_band?: number | null
           grammar_band?: number | null
@@ -43,7 +40,6 @@ export type Database = {
           mock_session_id: string
           notes?: Json | null
           overall_band?: number | null
-          part: number
           pronunciation_band?: number | null
           report?: Json | null
           scorecard?: Json
@@ -52,7 +48,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          coaching?: Json
           created_at?: string
           fluency_band?: number | null
           grammar_band?: number | null
@@ -61,7 +56,6 @@ export type Database = {
           mock_session_id?: string
           notes?: Json | null
           overall_band?: number | null
-          part?: number
           pronunciation_band?: number | null
           report?: Json | null
           scorecard?: Json
@@ -83,14 +77,9 @@ export type Database = {
         Row: {
           created_at: string
           ended_at: string | null
-          fluency_band: number | null
-          grammar_band: number | null
           id: string
-          lexical_band: number | null
           metadata: Json
-          overall_band: number | null
           parts: number[]
-          pronunciation_band: number | null
           scored_at: string | null
           started_at: string
           status: string
@@ -102,14 +91,9 @@ export type Database = {
         Insert: {
           created_at?: string
           ended_at?: string | null
-          fluency_band?: number | null
-          grammar_band?: number | null
           id?: string
-          lexical_band?: number | null
           metadata?: Json
-          overall_band?: number | null
           parts?: number[]
-          pronunciation_band?: number | null
           scored_at?: string | null
           started_at?: string
           status?: string
@@ -121,14 +105,9 @@ export type Database = {
         Update: {
           created_at?: string
           ended_at?: string | null
-          fluency_band?: number | null
-          grammar_band?: number | null
           id?: string
-          lexical_band?: number | null
           metadata?: Json
-          overall_band?: number | null
           parts?: number[]
-          pronunciation_band?: number | null
           scored_at?: string | null
           started_at?: string
           status?: string
@@ -168,7 +147,7 @@ export type Database = {
       }
       progress_history: {
         Row: {
-          assessment_result_id: string | null
+          assessment_result_id: string
           created_at: string
           fluency_band: number | null
           grammar_band: number | null
@@ -181,7 +160,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          assessment_result_id?: string | null
+          assessment_result_id: string
           created_at?: string
           fluency_band?: number | null
           grammar_band?: number | null
@@ -194,7 +173,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          assessment_result_id?: string | null
+          assessment_result_id?: string
           created_at?: string
           fluency_band?: number | null
           grammar_band?: number | null
@@ -230,7 +209,6 @@ export type Database = {
           created_at: string
           id: string
           mock_session_id: string
-          part: number
           raw_transcript: Json
           source: string
           tavus_conversation_id: string | null
@@ -242,7 +220,6 @@ export type Database = {
           created_at?: string
           id?: string
           mock_session_id: string
-          part: number
           raw_transcript?: Json
           source?: string
           tavus_conversation_id?: string | null
@@ -254,7 +231,6 @@ export type Database = {
           created_at?: string
           id?: string
           mock_session_id?: string
-          part?: number
           raw_transcript?: Json
           source?: string
           tavus_conversation_id?: string | null
