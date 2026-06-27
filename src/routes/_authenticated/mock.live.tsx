@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -27,12 +27,12 @@ function MockLivePage() {
 
   // Mark live shortly after mount so the status reflects the iframe being shown.
   // The iframe handles the actual handshake; this is a UX-level state.
-  useState(() => {
+  useEffect(() => {
     const id = window.setTimeout(() => {
       setStatus((s) => (s === "connecting" ? "live" : s));
     }, 2500);
     return () => window.clearTimeout(id);
-  });
+  }, []);
 
   const handleEnd = async () => {
     setStatus("ending");
