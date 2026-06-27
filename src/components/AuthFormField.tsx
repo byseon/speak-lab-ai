@@ -49,7 +49,7 @@ export function AuthFormField({
         onChange={(event) => onChange(event.target.value)}
       />
       {error ? (
-        <p id={errorId} role="alert" className="text-sm text-destructive">
+        <p id={errorId} role="alert" aria-live="polite" className="text-sm text-destructive">
           {error}
         </p>
       ) : null}
@@ -57,10 +57,12 @@ export function AuthFormField({
   );
 }
 
-export function AuthFormAlert({ message }: { message: string }) {
+export function AuthFormAlert({ message, id = "form-error" }: { message: string; id?: string }) {
   return (
     <p
+      id={id}
       role="alert"
+      aria-live="polite"
       className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
     >
       {message}

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/accordion";
 import { Sparkles, ArrowRight, MessageSquareQuote } from "lucide-react";
 import { LiveSessionMockup } from "@/components/LiveSessionMockup";
+import { SkipLink } from "@/components/SkipLink";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -132,6 +133,7 @@ function Landing() {
   }>;
   return (
     <div className="min-h-screen bg-background font-sans text-foreground antialiased">
+      <SkipLink />
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5">
         <Link to="/" className="flex items-center gap-2">
           <span
@@ -415,9 +417,9 @@ function Landing() {
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 border-t border-primary-foreground/20 px-5 py-6 text-xs text-primary-foreground/70 sm:flex-row">
           <div>{t("footer.copyright", { year: new Date().getFullYear() })}</div>
           <nav aria-label="Footer" className="flex gap-4">
-            <a href="#">{t("footer.links.privacy")}</a>
-            <a href="#">{t("footer.links.terms")}</a>
-            <a href="#">{t("footer.links.contact")}</a>
+            <span>{t("footer.links.privacy")}</span>
+            <span>{t("footer.links.terms")}</span>
+            <span>{t("footer.links.contact")}</span>
           </nav>
         </div>
       </footer>

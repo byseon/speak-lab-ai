@@ -84,7 +84,14 @@ function HomePage() {
                   <span className="text-muted-foreground">{c.label}</span>
                   <span className="font-semibold text-foreground">{c.value.toFixed(1)}</span>
                 </div>
-                <div className="h-2 rounded-full bg-muted">
+                <div
+                  className="h-2 rounded-full bg-muted"
+                  role="progressbar"
+                  aria-valuenow={c.value}
+                  aria-valuemin={0}
+                  aria-valuemax={9}
+                  aria-label={`${c.label} band score`}
+                >
                   <div
                     className="h-2 rounded-full bg-primary"
                     style={{ width: `${(c.value / 9) * 100}%` }}
@@ -123,7 +130,7 @@ function HomePage() {
           </ul>
           <Button asChild className="mt-5 w-full">
             <Link to="/session/preview">
-              Start today's session <ArrowRight className="ml-2 h-4 w-4" />
+              Start today&apos;s session <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </Card>

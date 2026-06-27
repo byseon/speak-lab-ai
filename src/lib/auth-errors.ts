@@ -50,7 +50,6 @@ export function parseAuthError(
   if (includesAny(lower, ["email not confirmed", "confirm your email", "email confirmation"])) {
     return {
       email: "Confirm your email first, then log in again.",
-      form: "Your email address is not confirmed yet.",
     };
   }
 
