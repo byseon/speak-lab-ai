@@ -51,6 +51,37 @@ function renderErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong.";
 }
 
+function evidenceQuote(evidence: unknown) {
+  if (!Array.isArray(evidence) || !evidence.length) return "";
+  const first = evidence[0];
+  if (typeof first === "string") return first.replace(/^["']|["']$/g, "");
+  if (first && typeof first === "object" && "quote" in first) {
+    return String(first.quote ?? "").replace(/^["']|["']$/g, "");
+  }
+  return "";
+}
+
+function SpectrumBar({ value }: { value: number }) {
+  const pct = Math.max(0, Math.min(100, (value / 9) * 100));
+
+  return (
+    <div className="mt-3">
+      <div className="relative h-2 rounded-full bg-muted">
+        <div className="h-2 rounded-full bg-primary" style={{ width: `${pct.toFixed(1)}%` }} />
+        <span
+          className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-primary shadow-sm"
+          style={{ left: `${pct.toFixed(1)}%` }}
+        />
+      </div>
+      <div className="mt-1 flex justify-between text-[11px] text-muted-foreground">
+        <span>0</span>
+        <span>IELTS band scale</span>
+        <span>9</span>
+      </div>
+    </div>
+  );
+}
+
 export function LiveAssessmentSession({
   username,
   userId,
@@ -144,7 +175,7 @@ export function LiveAssessmentSession({
     if (result.error) throw new Error(result.error);
     setScore(result);
     setStatus("Score ready");
-    if (userId && mockSessionId && result.scorecard) {
+    if (userId && mockSessionId && (result.scorecard || result.by_part?.length)) {
       try {
         let rawTranscript: Record<string, unknown> | undefined;
         try {
@@ -157,6 +188,7 @@ export function LiveAssessmentSession({
           userId,
           mockSessionId,
           conversationId,
+          parts,
           score: result,
           rawTranscript,
         });
@@ -164,6 +196,8 @@ export function LiveAssessmentSession({
       } catch (saveError) {
         setSaveMessage(`Score ready, but saving failed: ${renderErrorMessage(saveError)}`);
       }
+    } else if (userId && result.scorecard && !mockSessionId) {
+      setSaveMessage("Score ready, but no saved mock session was available to attach it to.");
     }
     return result;
   };
@@ -215,6 +249,21 @@ export function LiveAssessmentSession({
 
   const isReady = health?.ok === true;
   const missing = health?.missing ?? [];
+  const canSave = Boolean(userId);
+  const detailedFeedback =
+    score?.report?.criteria_feedback ??
+    (score?.scorecard
+      ? Object.entries(score.scorecard.criteria).map(([key, value]) => ({
+          criterion: key,
+          label: criterionLabel(key),
+          band: Number(value.band),
+          score_justification:
+            value.feedback?.[0]?.issue || value.comparative_note || value.rationale || "",
+          issue_found: value.feedback?.[0]?.upgraded_example || value.comparative_note || "",
+          area_of_improvement: value.feedback?.[0]?.suggestion || "",
+          example: value.feedback?.[0]?.example_from_candidate || evidenceQuote(value.evidence),
+        }))
+      : []);
 
   return (
     <div className="space-y-5">
@@ -254,6 +303,12 @@ export function LiveAssessmentSession({
           Missing backend env: {missing.join(", ")}
         </div>
       ) : null}
+
+      <div className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-muted-foreground">
+        {canSave
+          ? "Saving is enabled for this account. A row is created in mock_sessions as soon as Start succeeds."
+          : "Demo mode is not connected to an account, so this session will not be saved to Supabase."}
+      </div>
 
       {saveMessage ? (
         <div
@@ -366,23 +421,44 @@ export function LiveAssessmentSession({
             ) : null}
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {Object.entries(score.scorecard.criteria).map(([key, value]) => (
-              <div key={key} className="rounded-md border border-border bg-background p-3">
-                <div className="text-xs text-muted-foreground">{criterionLabel(key)}</div>
-                <div className="mt-1 text-xl font-semibold">{Number(value.band).toFixed(1)}</div>
-                {value.rationale ? (
-                  <p className="mt-2 line-clamp-4 text-xs text-muted-foreground">
-                    {value.rationale}
+          <div className="mt-5 grid gap-3 lg:grid-cols-2">
+            {detailedFeedback.map((item) => (
+              <div
+                key={item.criterion}
+                className="rounded-md border border-border bg-background p-4"
+              >
+                <div className="text-sm font-medium text-muted-foreground">{item.label}</div>
+                <div className="mt-1 text-2xl font-semibold">{Number(item.band).toFixed(1)}</div>
+                <SpectrumBar value={Number(item.band)} />
+                {item.score_justification ? (
+                  <p className="mt-3 text-sm leading-relaxed text-foreground">
+                    {item.score_justification}
+                  </p>
+                ) : null}
+                {item.issue_found ? (
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    <span className="font-medium text-foreground">Issue found: </span>
+                    {item.issue_found}
+                  </p>
+                ) : null}
+                {item.example ? (
+                  <p className="mt-2 border-l-2 border-primary/40 pl-3 text-xs text-muted-foreground">
+                    "{item.example}"
+                  </p>
+                ) : null}
+                {item.area_of_improvement ? (
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    <span className="font-medium text-foreground">Improve: </span>
+                    {item.area_of_improvement}
                   </p>
                 ) : null}
               </div>
             ))}
           </div>
 
-          {score.report?.spoken_overview ? (
+          {score.report?.final_summary || score.report?.spoken_overview ? (
             <p className="mt-5 rounded-md bg-muted p-3 text-sm text-muted-foreground">
-              {score.report.spoken_overview}
+              {score.report.final_summary || score.report.spoken_overview}
             </p>
           ) : null}
         </Card>

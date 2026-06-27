@@ -28,11 +28,12 @@ from assessment import pal
 from assessment.schema import Part
 from assessment.webhook import ConversationStore, handle_event
 from assessment.quickscore import score_transcript
-from assessment.transcript import candidate_text, transcript_ready
+from assessment.transcript import candidate_text, transcript_messages, transcript_ready
 
 TAVUS = "https://tavusapi.com/v2"
 STORE = ConversationStore()
 CORS_ALLOW_ORIGIN = os.environ.get("CORS_ALLOW_ORIGIN", "*")
+CONVERSATION_PARTS: dict[str, list[int]] = {}
 
 
 def health() -> dict:
@@ -57,8 +58,59 @@ def score_conversation(cid: str) -> dict:
                              "call, then click Score me again."}
         return {"error": "no candidate speech found in the transcript."}
     card, report, notes = score_transcript(text)
+    by_part = score_parts(conv, CONVERSATION_PARTS.get(cid, [1, 2, 3]), text)
     return {"scorecard": card.to_dict(), "report": asdict(report),
-            "notes": notes, "transcript_chars": len(text)}
+            "by_part": by_part, "notes": notes, "transcript_chars": len(text)}
+
+
+def score_parts(conv: dict, parts: list[int], full_text: str) -> list[dict]:
+    """Return one score/transcript payload per selected IELTS part.
+
+    Tavus' post-call transcript is role-based, not part-tagged, so this fallback
+    groups candidate turns across the selected parts. If Tavus only gives one long
+    user transcript, split it into contiguous word chunks so Supabase still gets
+    the required per-part rows.
+    """
+    selected = parts or [1, 2, 3]
+    messages = [
+        m.get("content", "").strip()
+        for m in transcript_messages(conv)
+        if m.get("role") == "user" and isinstance(m.get("content"), str)
+        and m.get("content", "").strip()
+    ]
+    chunks = split_candidate_chunks(messages, selected, full_text)
+    out = []
+    for part, chunk in zip(selected, chunks):
+        part_card, part_report, part_notes = score_transcript(chunk or full_text)
+        out.append({
+            "part": part,
+            "scorecard": part_card.to_dict(),
+            "coaching": {"report": asdict(part_report), "notes": part_notes},
+            "raw_transcript": {
+                "candidate_text": chunk,
+                "source": "tavus_transcript_chunk",
+                "selected_parts": selected,
+            },
+            "candidate_text": chunk,
+        })
+    return out
+
+
+def split_candidate_chunks(messages: list[str], parts: list[int], full_text: str) -> list[str]:
+    if not parts:
+        return []
+    if len(messages) >= len(parts):
+        chunks = [[] for _ in parts]
+        for i, msg in enumerate(messages):
+            chunks[min(i * len(parts) // len(messages), len(parts) - 1)].append(msg)
+        return [" ".join(chunk).strip() for chunk in chunks]
+    words = (full_text or " ".join(messages)).split()
+    if not words:
+        return ["" for _ in parts]
+    size = max(1, (len(words) + len(parts) - 1) // len(parts))
+    chunks = [" ".join(words[i * size:(i + 1) * size]).strip()
+              for i in range(len(parts))]
+    return [chunk or full_text for chunk in chunks]
 
 
 def _tavus(method: str, path: str, body: dict | None = None) -> dict:
@@ -76,10 +128,20 @@ def start_conversation(username: str, parts: list[int]) -> dict:
         pal_id=config.tavus_pal_id, face_id=config.tavus_face_id,
         username=username or "guest",
         parts=[Part(p) for p in parts] or [Part.PART1, Part.PART2, Part.PART3],
-        callback_url=config.tavus_callback_url or None)
-    out = _tavus("POST", "/conversations", payload)
+        callback_url=config.tavus_callback_url or None,
+        use_memory=config.tavus_use_memory)
+    try:
+        out = _tavus("POST", "/conversations", payload)
+    except urllib.error.HTTPError:
+        if not config.tavus_use_memory:
+            raise
+        payload.pop("memory_stores", None)
+        out = _tavus("POST", "/conversations", payload)
+    cid = out.get("conversation_id")
+    if cid:
+        CONVERSATION_PARTS[cid] = [int(p) for p in parts] or [1, 2, 3]
     return {"conversation_url": out.get("conversation_url"),
-            "conversation_id": out.get("conversation_id")}
+            "conversation_id": cid}
 
 
 class Handler(BaseHTTPRequestHandler):

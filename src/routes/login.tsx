@@ -16,9 +16,16 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Log in — SpeakLab" },
-      { name: "description", content: "Log in to SpeakLab to continue your IELTS Speaking practice plan and review your latest mock band score." },
+      {
+        name: "description",
+        content:
+          "Log in to SpeakLab to continue your IELTS Speaking practice plan and review your latest mock band score.",
+      },
       { property: "og:title", content: "Log in — SpeakLab" },
-      { property: "og:description", content: "Log in to continue your IELTS Speaking plan on SpeakLab." },
+      {
+        property: "og:description",
+        content: "Log in to continue your IELTS Speaking plan on SpeakLab.",
+      },
       { property: "og:url", content: "https://ielts-pal-ai.lovable.app/login" },
       { name: "robots", content: "noindex" },
     ],

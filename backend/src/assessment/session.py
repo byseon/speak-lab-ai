@@ -15,6 +15,7 @@ Pure stdlib.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import re
 
 from .schema import Turn, Part, Criterion, TurnFeatures, Scorecard
 from .features import extract_features, PronunciationAssessor, ProxyPronunciationAssessor
@@ -38,11 +39,24 @@ class TurnResult:
 
 
 @dataclass
+class CriterionReport:
+    criterion: str
+    label: str
+    band: float
+    score_justification: str
+    issue_found: str
+    area_of_improvement: str
+    example: str = ""
+
+
+@dataclass
 class ConversationalReport:
     """A wrap-up the PAL can *say*, plus interactive choices for what to do next."""
 
     spoken_overview: str
     overall_band: float
+    criteria_feedback: list[CriterionReport] = field(default_factory=list)
+    final_summary: str = ""
     strengths: list[str] = field(default_factory=list)
     priorities: list[str] = field(default_factory=list)
     suggested_drill: str = ""
@@ -64,10 +78,13 @@ class CoachingSession:
         self.overused: set[str] = set()
         self.pron_flags: set[str] = set()
         self.complex_sentence_seen = False
+        self.candidate_texts: list[str] = []
 
     def process_turn(self, turn: Turn) -> TurnResult:
         feats = extract_features(turn, pron=self._pron)
         self.turns.append(feats)
+        if turn.clean_text.strip():
+            self.candidate_texts.append(turn.clean_text.strip())
         self._accumulate(feats)
 
         cues = self._gen.generate(feats, mode=self.mode)
@@ -144,6 +161,8 @@ class CoachingSession:
         return ConversationalReport(
             spoken_overview=overview,
             overall_band=card.overall_band,
+            criteria_feedback=self._criterion_feedback(card),
+            final_summary=self._final_summary(card, strongest, weakest, priorities),
             strengths=strengths,
             priorities=priorities,
             suggested_drill=suggested,
@@ -154,3 +173,121 @@ class CoachingSession:
                 "End session",
             ],
         )
+
+    def _criterion_feedback(self, card: Scorecard) -> list[CriterionReport]:
+        labels = {
+            Criterion.FLUENCY_COHERENCE: "Fluency & Coherence",
+            Criterion.LEXICAL_RESOURCE: "Lexical Resource",
+            Criterion.GRAMMATICAL_RANGE_ACCURACY: "Grammatical Range & Accuracy",
+            Criterion.PRONUNCIATION: "Pronunciation",
+        }
+        out: list[CriterionReport] = []
+        for crit in Criterion:
+            result = card.criteria.get(crit.value)
+            if not result:
+                continue
+            band = result.band
+            if result.feedback:
+                first = result.feedback[0]
+                out.append(CriterionReport(
+                    criterion=crit.value,
+                    label=labels[crit],
+                    band=band,
+                    score_justification=first.issue,
+                    issue_found=first.upgraded_example or result.comparative_note or
+                    "The main issue is the same one targeted in the improvement step.",
+                    area_of_improvement=first.suggestion or first.upgraded_example,
+                    example=first.example_from_candidate,
+                ))
+                continue
+
+            quote = self._quote_for(crit)
+            if crit == Criterion.FLUENCY_COHERENCE:
+                why = (f"Band {band} reflects speech that is understandable and mostly coherent.")
+                issue = "The answer needs clearer linking language so the structure is easier to hear."
+                improve = (f"Use {self._quote_or_answer(quote)} as a base, then add a signpost such as "
+                           "'The main reason is...', 'For example...', or 'As a result...'.")
+            elif crit == Criterion.LEXICAL_RESOURCE:
+                if self.overused:
+                    words = ", ".join(sorted(self.overused))
+                    why = (f"Band {band} is supported by some topic vocabulary, but repeated basic words "
+                           f"such as {words} hold the range back.")
+                    issue = f"Repeated basic vocabulary such as {words} makes the answer sound less precise."
+                    improve = (f"In {self._quote_or_answer(quote)}, replace repeated basic wording like "
+                               f"{words} with one precise phrase tied to the topic.")
+                else:
+                    why = (f"Band {band} suggests vocabulary is one of the stronger parts of this answer.")
+                    issue = "Some wording still stays safe rather than sharply specific."
+                    improve = (f"Take {self._quote_or_answer(quote)} and add one stronger collocation or exact "
+                               "noun/adjective pair instead of a safe general word.")
+            elif crit == Criterion.GRAMMATICAL_RANGE_ACCURACY:
+                why = (f"Band {band} suggests your grammar communicates the message, but range and control can improve.")
+                issue = "The answer relies too much on simple sentence patterns, which caps the grammar band."
+                improve = (f"Expand {self._quote_or_answer(quote)} into one accurate complex sentence with "
+                           "'because', 'although', or 'which', then check the verb tense.")
+            else:
+                why = (f"Band {band} is a cautious pronunciation estimate from the available transcript path.")
+                issue = "There is not enough recording-level evidence here to diagnose exact pronunciation errors."
+                improve = ("For a stronger pronunciation score, keep sentence stress clear and record a full answer "
+                           "so the system can evaluate timing, clarity, and prosody.")
+
+            out.append(CriterionReport(
+                criterion=crit.value,
+                label=labels[crit],
+                band=band,
+                score_justification=why,
+                issue_found=issue,
+                area_of_improvement=improve,
+                example=quote,
+            ))
+        return out
+
+    def _final_summary(self, card: Scorecard, strongest: Criterion, weakest: Criterion,
+                       priorities: list[str]) -> str:
+        if card.overall_band >= 7:
+            opener = "This was a solid performance with enough control to sound confident."
+        elif card.overall_band >= 6:
+            opener = "This was a competent performance: your message came through, but the answer still needs more control and range."
+        else:
+            opener = "This response is understandable in places, but it needs more development before it feels exam-ready."
+        return (
+            f"{opener} Your strongest area is {_LABEL[strongest]}, while {_LABEL[weakest]} is the clearest lever "
+            f"for improvement. {priorities[0]} For the next mock, focus on one concrete upgrade rather than trying "
+            "to fix everything at once.")
+
+    def _candidate_text(self) -> str:
+        return " ".join(t for t in self.candidate_texts if t).strip()
+
+    def _sentences(self) -> list[str]:
+        text = self._candidate_text()
+        if not text:
+            return []
+        parts = [p.strip(" ,") for p in re.split(r"(?<=[.!?])\s+", text) if p.strip(" ,")]
+        if len(parts) == 1 and len(parts[0].split()) > 28:
+            words = parts[0].split()
+            return [" ".join(words[i:i + 18]) for i in range(0, len(words), 18)]
+        return parts
+
+    def _quote_for(self, criterion: Criterion) -> str:
+        sents = self._sentences()
+        if not sents:
+            return ""
+        if criterion == Criterion.LEXICAL_RESOURCE and self.overused:
+            targets = {w.lower() for w in self.overused}
+            for sent in sents:
+                if any(t in sent.lower().split() for t in targets):
+                    return self._trim_quote(sent)
+        if criterion == Criterion.GRAMMATICAL_RANGE_ACCURACY:
+            return self._trim_quote(max(sents, key=lambda s: len(s.split())))
+        return self._trim_quote(sents[0])
+
+    @staticmethod
+    def _trim_quote(text: str, max_words: int = 22) -> str:
+        words = text.strip().split()
+        if len(words) <= max_words:
+            return text.strip()
+        return " ".join(words[:max_words]).strip() + "..."
+
+    @staticmethod
+    def _quote_or_answer(quote: str) -> str:
+        return f"'{quote}'" if quote else "one sentence from your answer"

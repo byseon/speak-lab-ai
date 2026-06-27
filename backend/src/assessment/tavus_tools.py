@@ -23,6 +23,7 @@ Flow:
 """
 
 from __future__ import annotations
+import re
 
 from .schema import (TurnFeatures, Criterion, JudgeResult, Evidence, FeedbackItem,
                      Scorecard)
@@ -35,11 +36,23 @@ _CRIT_PARAM = {
     "properties": {
         "band": {"type": "number", "description": "0–9, half-bands allowed"},
         "feedback": {"type": "string",
-                     "description": "specific, e.g. 'you said X; a band-7 answer would say Y'"},
+                     "description": "concise overall criterion feedback, specific to the transcript"},
+        "score_justification": {
+            "type": "string",
+            "description": "1–2 sentence justification for this band using transcript evidence",
+        },
+        "issue_found": {
+            "type": "string",
+            "description": "1 brief sentence naming the concrete issue found in the candidate's answer",
+        },
+        "area_of_improvement": {
+            "type": "string",
+            "description": "1 practical, specific next step tied to the quoted candidate line",
+        },
         "evidence": {"type": "array", "items": {"type": "string"},
-                     "description": "short verbatim quotes from the candidate"},
+                     "description": "literal verbatim candidate quotes only; no evaluator prose"},
     },
-    "required": ["band", "feedback"],
+    "required": ["band", "feedback", "score_justification", "area_of_improvement"],
 }
 
 # Body for POST /v2/tools (flat schema, per the Tavus tools registry).
@@ -68,9 +81,13 @@ ASSESSMENT_TOOL = {
 GRADING_INSTRUCTION = (
     "The test is now complete. Using the IELTS band descriptors in your Knowledge and "
     "the OBJECTIVE SPEECH MEASUREMENTS provided, call submit_ielts_assessment with a "
-    "band (0–9, half-bands allowed) and specific, quoted feedback for each of the four "
-    "criteria. Weight the measurements heavily for Pronunciation, which you cannot hear "
-    "directly. Do not read the scores aloud to the candidate.")
+    "band (0–9, half-bands allowed) for each IELTS Speaking criterion. For each criterion, "
+    "write natural non-template feedback: (1) justify the score with specific evidence, "
+    "(2) name one concrete issue found, (3) identify one area of improvement tied to an exact "
+    "candidate quote, and (4) include short literal verbatim candidate quotes only in evidence. "
+    "Do not put evaluator prose in evidence. Be concise but informative. Weight the objective "
+    "measurements heavily for Pronunciation, which you cannot hear directly. Do not read the "
+    "scores aloud.")
 
 _KEY_TO_CRITERION = {
     "fluency_coherence": Criterion.FLUENCY_COHERENCE,
@@ -106,6 +123,43 @@ def build_grading_context(features: TurnFeatures | list[TurnFeatures]) -> str:
 
 def scorecard_from_arguments(args: dict) -> Scorecard:
     """Parse submit_ielts_assessment arguments -> Scorecard."""
+    llm_summary = args.get("summary", "")
+    if "fc_band" in args:
+        args = {
+            "fluency_coherence": {
+                "band": args.get("fc_band"),
+                "feedback": args.get("fc_evidence", ""),
+                "score_justification": args.get("fc_evidence", ""),
+                "issue_found": "",
+                "area_of_improvement": args.get("fc_improvement", ""),
+                "evidence": [args.get("fc_evidence", "")],
+            },
+            "lexical_resource": {
+                "band": args.get("lr_band"),
+                "feedback": args.get("lr_evidence", ""),
+                "score_justification": args.get("lr_evidence", ""),
+                "issue_found": "",
+                "area_of_improvement": args.get("lr_improvement", ""),
+                "evidence": [args.get("lr_evidence", "")],
+            },
+            "grammatical_range_accuracy": {
+                "band": args.get("gra_band"),
+                "feedback": args.get("gra_evidence", ""),
+                "score_justification": args.get("gra_evidence", ""),
+                "issue_found": "",
+                "area_of_improvement": args.get("gra_improvement", ""),
+                "evidence": [args.get("gra_evidence", "")],
+            },
+            "pronunciation": {
+                "band": args.get("pron_band"),
+                "feedback": args.get("pron_evidence", ""),
+                "score_justification": args.get("pron_evidence", ""),
+                "issue_found": "",
+                "area_of_improvement": args.get("pron_improvement", ""),
+                "evidence": [args.get("pron_evidence", "")],
+            },
+        }
+
     results: dict[Criterion, JudgeResult] = {}
     for key, crit in _KEY_TO_CRITERION.items():
         part = args.get(key)
@@ -115,9 +169,37 @@ def scorecard_from_arguments(args: dict) -> Scorecard:
             criterion=crit,
             band=float(part.get("band", 0.0)),
             evidence=[Evidence(quote=q) for q in part.get("evidence", [])],
-            feedback=[FeedbackItem(issue=part.get("feedback", ""))],
+            feedback=[FeedbackItem(
+                issue=part.get("score_justification") or part.get("feedback", ""),
+                suggestion=part.get("area_of_improvement", ""),
+                example_from_candidate=_literal_quote(part.get("evidence", [])),
+                upgraded_example=part.get("issue_found", ""),
+            )],
+            comparative_note=part.get("feedback", ""),
         )
-    return aggregate(results)
+    card = aggregate(results)
+    if llm_summary:
+        card.part_summaries["llm_summary"] = str(llm_summary)
+    return card
+
+
+def _literal_quote(evidence: list[str]) -> str:
+    """Return only a likely verbatim candidate quote, not evaluator prose."""
+    for item in evidence:
+        if not item:
+            continue
+        stripped = item.strip()
+        if (
+            len(stripped.split()) <= 18
+            and not any(marker in stripped.lower() for marker in (
+                "candidate", "band", "score", "shows", "suggests", "because", "evidence",
+            ))
+        ):
+            return stripped.strip("\"'“”")
+        m = re.search(r'"([^"]{4,160})"|“([^”]{4,160})”|' + r"'([^']{4,160})'", item)
+        if m:
+            return next(g for g in m.groups() if g)
+    return ""
 
 
 def scorecard_from_event(event: dict) -> Scorecard:

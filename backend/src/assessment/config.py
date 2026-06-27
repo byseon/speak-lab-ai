@@ -34,6 +34,10 @@ def _get(name: str, default: str = "") -> str:
     return os.environ.get(name, default)
 
 
+def _bool(name: str, default: str = "false") -> bool:
+    return _get(name, default).strip().lower() in {"1", "true", "yes", "on"}
+
+
 @dataclass(frozen=True)
 class Config:
     # Tavus CVI (conversation + STT + Knowledge Base)
@@ -44,6 +48,7 @@ class Config:
     tavus_document_tags: tuple[str, ...] = tuple(
         t.strip() for t in _get("TAVUS_DOCUMENT_TAGS").split(",") if t.strip())
     tavus_callback_url: str = _get("TAVUS_CALLBACK_URL")
+    tavus_use_memory: bool = _bool("TAVUS_USE_MEMORY", "true")
 
     # Pronunciation + word-timing backbone (local Charsiu)
     charsiu_model: str = _get("CHARSIU_MODEL", "charsiu/en_w2v2_fc_10ms")

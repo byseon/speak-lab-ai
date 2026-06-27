@@ -17,9 +17,16 @@ export const Route = createFileRoute("/signup")({
   head: () => ({
     meta: [
       { title: "Sign up — SpeakLab" },
-      { name: "description", content: "Create your free SpeakLab account and take a full IELTS Speaking mock with an AI examiner. Get a band score and a personalized plan." },
+      {
+        name: "description",
+        content:
+          "Create your free SpeakLab account and take a full IELTS Speaking mock with an AI examiner. Get a band score and a personalized plan.",
+      },
       { property: "og:title", content: "Sign up — SpeakLab" },
-      { property: "og:description", content: "Take your free IELTS Speaking mock with an AI examiner and get a band score." },
+      {
+        property: "og:description",
+        content: "Take your free IELTS Speaking mock with an AI examiner and get a band score.",
+      },
       { property: "og:url", content: "https://ielts-pal-ai.lovable.app/signup" },
     ],
     links: [{ rel: "canonical", href: "https://ielts-pal-ai.lovable.app/signup" }],

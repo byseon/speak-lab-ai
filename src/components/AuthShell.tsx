@@ -36,9 +36,7 @@ export function AuthShell({
         <h1 id="auth-title" className="text-2xl font-semibold tracking-tight">
           {title}
         </h1>
-        {subtitle ? (
-          <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
-        ) : null}
+        {subtitle ? <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p> : null}
         <div className="mt-6">{children}</div>
         {footer ? (
           <div className="mt-6 text-center text-sm text-muted-foreground">{footer}</div>
