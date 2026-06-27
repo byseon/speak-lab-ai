@@ -3,6 +3,7 @@ import { Loader2, Mic, Square } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { TavusEmbedPanel, type TavusEmbedPanelHandle } from "@/components/TavusEmbedPanel";
 import {
   endAssessment,
   getAssessmentTranscript,
@@ -15,13 +16,13 @@ import {
   markMockSessionEnded,
   saveAssessmentArtifacts,
 } from "@/lib/assessment-storage";
-import { TavusEmbedPanel, type TavusEmbedPanelHandle } from "@/components/TavusEmbedPanel";
 
 type TavusEmbedSessionProps = {
   title: string;
   description: string;
   /** Shown in conversational-context when set (e.g. candidate name). */
   username?: string;
+  /** Authenticated user id — required to persist the session to Supabase. */
   userId?: string;
   parts?: SpeakingPart[];
   mode?: "exam" | "practice";
@@ -81,7 +82,7 @@ export function TavusEmbedSession({
   );
 
   const scoreConversation = async (cid: string) => {
-    const result = await scoreAssessment(cid);
+    const result = await scoreAssessment(cid, parts);
     if (result.error) throw new Error(result.error);
     setScore(result);
     setStatus("Your band score is ready.");
@@ -98,6 +99,7 @@ export function TavusEmbedSession({
           userId,
           mockSessionId,
           conversationId: cid,
+          parts,
           score: result,
           rawTranscript,
         });
@@ -191,6 +193,11 @@ export function TavusEmbedSession({
             )}
           </Button>
         </div>
+        {error ? (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
       </Card>
 
       {error ? (
@@ -254,6 +261,11 @@ export function TavusEmbedSession({
           {score.report?.spoken_overview ? (
             <p className="mt-5 rounded-md bg-muted p-3 text-sm text-muted-foreground">
               {score.report.spoken_overview}
+            </p>
+          ) : null}
+          {score.report?.final_summary ? (
+            <p className="mt-3 rounded-md bg-muted p-3 text-sm text-muted-foreground">
+              {score.report.final_summary}
             </p>
           ) : null}
         </Card>

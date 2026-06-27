@@ -169,62 +169,76 @@ export async function saveAssessmentArtifacts({
   score: ScoreAssessmentResponse;
   rawTranscript?: Record<string, unknown>;
 }) {
-  // Prefer real per-part data. If the live Tavus score only returns an overall
-  // scorecard, persist one compatible row per selected IELTS part so the session
-  // does not stop at mock_sessions only.
+  // One row per session: aggregate all parts into a single assessment_results /
+  // transcripts row keyed by mock_session_id (matches current schema).
   const parts = partsForStorage({ selectedParts, score, rawTranscript });
-  if (!parts.length) return;
+  if (!parts.length && !score.scorecard) return;
 
   const now = new Date().toISOString();
-  const overall = averageBands(parts);
+  const overall: OverallBands = score.scorecard
+    ? {
+        overall_band: score.scorecard.overall_band,
+        ...criterionBands(score.scorecard),
+      }
+    : averageBands(parts);
 
-  const resultRows = parts.map((p) => ({
-    mock_session_id: mockSessionId,
-    user_id: userId,
-    part: p.part,
-    overall_band: p.scorecard.overall_band,
-    ...criterionBands(p.scorecard),
-    scorecard: toJson(p.scorecard),
-    coaching: toJson(p.coaching ?? {}),
-    report: score.report ? toJson(score.report) : null,
-    notes: score.notes ? toJson(score.notes) : null,
-    transcript_chars: score.transcript_chars ?? null,
-    updated_at: now,
-  }));
-  const { data: savedResults, error: resultError } = await supabase
+  const aggregatedScorecard = score.scorecard ?? (parts[0]?.scorecard as Scorecard | undefined);
+  const aggregatedCandidateText =
+    parts
+      .map((p) => p.candidate_text)
+      .filter((t): t is string => typeof t === "string" && !!t.trim())
+      .join("\n\n") || extractCandidateText(rawTranscript);
+
+  const { data: savedResult, error: resultError } = await supabase
     .from("assessment_results")
-    .upsert(resultRows, { onConflict: "mock_session_id,part" })
-    .select("id, part");
+    .upsert(
+      {
+        mock_session_id: mockSessionId,
+        user_id: userId,
+        overall_band: overall.overall_band,
+        fluency_band: overall.fluency_band,
+        lexical_band: overall.lexical_band,
+        grammar_band: overall.grammar_band,
+        pronunciation_band: overall.pronunciation_band,
+        scorecard: toJson(aggregatedScorecard ?? {}),
+        report: score.report ? toJson({ ...score.report, by_part: parts }) : null,
+        notes: score.notes ? toJson(score.notes) : null,
+        transcript_chars: score.transcript_chars ?? null,
+        updated_at: now,
+      },
+      { onConflict: "mock_session_id" },
+    )
+    .select("id")
+    .single();
   if (resultError) throw resultError;
 
-  const transcriptRows = parts.map((p) => ({
-    mock_session_id: mockSessionId,
-    user_id: userId,
-    tavus_conversation_id: conversationId,
-    part: p.part,
-    raw_transcript: toJson(p.raw_transcript ?? rawTranscript ?? {}),
-    candidate_text:
-      p.candidate_text ?? extractCandidateText(p.raw_transcript ?? rawTranscript) ?? null,
-    source: "tavus",
-    captured_at: now,
-  }));
-  const { error: transcriptError } = await supabase
-    .from("transcripts")
-    .upsert(transcriptRows, { onConflict: "mock_session_id,part" });
+  const { error: transcriptError } = await supabase.from("transcripts").upsert(
+    {
+      mock_session_id: mockSessionId,
+      user_id: userId,
+      tavus_conversation_id: conversationId,
+      raw_transcript: toJson(rawTranscript ?? { by_part: parts }),
+      candidate_text: aggregatedCandidateText,
+      source: "tavus",
+      captured_at: now,
+    },
+    { onConflict: "mock_session_id" },
+  );
   if (transcriptError) throw transcriptError;
-
-  const assessmentResultId =
-    savedResults?.find((row) => row.part === parts[0]?.part)?.id ?? savedResults?.[0]?.id ?? null;
 
   const { error: progressError } = await supabase.from("progress_history").upsert(
     {
       user_id: userId,
       mock_session_id: mockSessionId,
-      assessment_result_id: assessmentResultId,
-      ...overall,
+      assessment_result_id: savedResult.id,
+      overall_band: overall.overall_band,
+      fluency_band: overall.fluency_band,
+      lexical_band: overall.lexical_band,
+      grammar_band: overall.grammar_band,
+      pronunciation_band: overall.pronunciation_band,
       recorded_at: now,
     },
-    { onConflict: "mock_session_id" },
+    { onConflict: "assessment_result_id" },
   );
   if (progressError) throw progressError;
 
@@ -233,10 +247,8 @@ export async function saveAssessmentArtifacts({
     .update({
       status: "scored",
       scored_at: now,
-      ...overall,
       updated_at: now,
     })
     .eq("id", mockSessionId);
-
   if (sessionError) throw sessionError;
 }
