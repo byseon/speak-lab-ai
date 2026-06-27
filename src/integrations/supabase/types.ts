@@ -16,52 +16,58 @@ export type Database = {
     Tables: {
       assessment_results: {
         Row: {
-          coaching: Json
           created_at: string
           fluency_band: number | null
           grammar_band: number | null
           id: string
           lexical_band: number | null
+          mock_session_id: string
+          notes: Json | null
           overall_band: number | null
           pronunciation_band: number | null
+          report: Json | null
           scorecard: Json
-          session_id: string
+          transcript_chars: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          coaching?: Json
           created_at?: string
           fluency_band?: number | null
           grammar_band?: number | null
           id?: string
           lexical_band?: number | null
+          mock_session_id: string
+          notes?: Json | null
           overall_band?: number | null
           pronunciation_band?: number | null
+          report?: Json | null
           scorecard?: Json
-          session_id: string
+          transcript_chars?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          coaching?: Json
           created_at?: string
           fluency_band?: number | null
           grammar_band?: number | null
           id?: string
           lexical_band?: number | null
+          mock_session_id?: string
+          notes?: Json | null
           overall_band?: number | null
           pronunciation_band?: number | null
+          report?: Json | null
           scorecard?: Json
-          session_id?: string
+          transcript_chars?: number | null
           updated_at?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "assessment_results_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
+            foreignKeyName: "assessment_results_mock_session_id_fkey"
+            columns: ["mock_session_id"]
+            isOneToOne: true
             referencedRelation: "mock_sessions"
             referencedColumns: ["id"]
           },
@@ -69,41 +75,44 @@ export type Database = {
       }
       mock_sessions: {
         Row: {
-          completed_at: string | null
           created_at: string
-          duration_s: number | null
+          ended_at: string | null
           id: string
-          kind: string
           metadata: Json
+          parts: number[]
+          scored_at: string | null
           started_at: string
           status: string
           tavus_conversation_id: string | null
+          tavus_conversation_url: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          completed_at?: string | null
           created_at?: string
-          duration_s?: number | null
+          ended_at?: string | null
           id?: string
-          kind?: string
           metadata?: Json
+          parts?: number[]
+          scored_at?: string | null
           started_at?: string
           status?: string
           tavus_conversation_id?: string | null
+          tavus_conversation_url?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          completed_at?: string | null
           created_at?: string
-          duration_s?: number | null
+          ended_at?: string | null
           id?: string
-          kind?: string
           metadata?: Json
+          parts?: number[]
+          scored_at?: string | null
           started_at?: string
           status?: string
           tavus_conversation_id?: string | null
+          tavus_conversation_url?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -138,48 +147,55 @@ export type Database = {
       }
       progress_history: {
         Row: {
+          assessment_result_id: string
           created_at: string
           fluency_band: number | null
           grammar_band: number | null
           id: string
           lexical_band: number | null
-          notes: string | null
+          mock_session_id: string | null
           overall_band: number | null
           pronunciation_band: number | null
           recorded_at: string
-          session_id: string | null
           user_id: string
         }
         Insert: {
+          assessment_result_id: string
           created_at?: string
           fluency_band?: number | null
           grammar_band?: number | null
           id?: string
           lexical_band?: number | null
-          notes?: string | null
+          mock_session_id?: string | null
           overall_band?: number | null
           pronunciation_band?: number | null
           recorded_at?: string
-          session_id?: string | null
           user_id: string
         }
         Update: {
+          assessment_result_id?: string
           created_at?: string
           fluency_band?: number | null
           grammar_band?: number | null
           id?: string
           lexical_band?: number | null
-          notes?: string | null
+          mock_session_id?: string | null
           overall_band?: number | null
           pronunciation_band?: number | null
           recorded_at?: string
-          session_id?: string | null
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "progress_history_session_id_fkey"
-            columns: ["session_id"]
+            foreignKeyName: "progress_history_assessment_result_id_fkey"
+            columns: ["assessment_result_id"]
+            isOneToOne: true
+            referencedRelation: "assessment_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_history_mock_session_id_fkey"
+            columns: ["mock_session_id"]
             isOneToOne: false
             referencedRelation: "mock_sessions"
             referencedColumns: ["id"]
@@ -188,55 +204,43 @@ export type Database = {
       }
       transcripts: {
         Row: {
-          audio_url: string | null
+          candidate_text: string | null
+          captured_at: string
           created_at: string
-          ended_at_s: number | null
           id: string
-          part: number
-          prompt: string | null
-          session_id: string
-          speaker: string
-          started_at_s: number | null
-          text: string
-          turn_idx: number
+          mock_session_id: string
+          raw_transcript: Json
+          source: string
+          tavus_conversation_id: string | null
           user_id: string
-          words: Json
         }
         Insert: {
-          audio_url?: string | null
+          candidate_text?: string | null
+          captured_at?: string
           created_at?: string
-          ended_at_s?: number | null
           id?: string
-          part: number
-          prompt?: string | null
-          session_id: string
-          speaker: string
-          started_at_s?: number | null
-          text?: string
-          turn_idx: number
+          mock_session_id: string
+          raw_transcript?: Json
+          source?: string
+          tavus_conversation_id?: string | null
           user_id: string
-          words?: Json
         }
         Update: {
-          audio_url?: string | null
+          candidate_text?: string | null
+          captured_at?: string
           created_at?: string
-          ended_at_s?: number | null
           id?: string
-          part?: number
-          prompt?: string | null
-          session_id?: string
-          speaker?: string
-          started_at_s?: number | null
-          text?: string
-          turn_idx?: number
+          mock_session_id?: string
+          raw_transcript?: Json
+          source?: string
+          tavus_conversation_id?: string | null
           user_id?: string
-          words?: Json
         }
         Relationships: [
           {
-            foreignKeyName: "transcripts_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
+            foreignKeyName: "transcripts_mock_session_id_fkey"
+            columns: ["mock_session_id"]
+            isOneToOne: true
             referencedRelation: "mock_sessions"
             referencedColumns: ["id"]
           },
