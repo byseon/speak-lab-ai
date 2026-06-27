@@ -110,52 +110,65 @@ export async function saveAssessmentArtifacts({
   score: ScoreAssessmentResponse;
   rawTranscript?: Record<string, unknown>;
 }) {
-  // Per-part model: one assessment_results + one transcripts row per part.
   const parts = score.by_part ?? [];
   if (!parts.length) return;
 
   const now = new Date().toISOString();
+  const overall = averageBands(parts);
 
-  const resultRows = parts.map((p) => ({
-    mock_session_id: mockSessionId,
-    user_id: userId,
-    part: p.part,
-    overall_band: p.scorecard.overall_band,
-    ...criterionBands(p.scorecard),
-    scorecard: toJson(p.scorecard),
-    coaching: toJson(p.coaching ?? {}),
-  }));
-  const { error: resultError } = await supabase
+  // One assessment_results row per session, aggregated across parts.
+  const combinedScorecard = toJson({ overall, by_part: parts.map((p) => p.scorecard) });
+  const combinedReport = toJson({ coaching: parts.map((p) => p.coaching ?? {}) });
+  const candidateText = parts
+    .map((p) => p.candidate_text ?? "")
+    .filter(Boolean)
+    .join("\n\n");
+
+  const { data: resultRow, error: resultError } = await supabase
     .from("assessment_results")
-    .upsert(resultRows, { onConflict: "mock_session_id,part" });
+    .upsert(
+      {
+        mock_session_id: mockSessionId,
+        user_id: userId,
+        ...overall,
+        scorecard: combinedScorecard,
+        report: combinedReport,
+        transcript_chars: candidateText.length,
+      },
+      { onConflict: "mock_session_id" },
+    )
+    .select("id")
+    .single();
   if (resultError) throw resultError;
 
-  const transcriptRows = parts.map((p) => ({
-    mock_session_id: mockSessionId,
-    user_id: userId,
-    tavus_conversation_id: conversationId,
-    part: p.part,
-    raw_transcript: toJson(p.raw_transcript ?? rawTranscript ?? {}),
-    candidate_text: p.candidate_text ?? null,
-    source: "tavus",
-    captured_at: now,
-  }));
   const { error: transcriptError } = await supabase
     .from("transcripts")
-    .upsert(transcriptRows, { onConflict: "mock_session_id,part" });
+    .upsert(
+      {
+        mock_session_id: mockSessionId,
+        user_id: userId,
+        tavus_conversation_id: conversationId,
+        raw_transcript: toJson({
+          by_part: parts.map((p) => p.raw_transcript ?? null),
+          fallback: rawTranscript ?? null,
+        }),
+        candidate_text: candidateText || null,
+        source: "tavus",
+        captured_at: now,
+      },
+      { onConflict: "mock_session_id" },
+    );
   if (transcriptError) throw transcriptError;
-
-  // Session headline = average of the parts (one progress row per session).
-  const overall = averageBands(parts);
 
   const { error: progressError } = await supabase.from("progress_history").upsert(
     {
       user_id: userId,
       mock_session_id: mockSessionId,
+      assessment_result_id: resultRow.id,
       ...overall,
       recorded_at: now,
     },
-    { onConflict: "mock_session_id" },
+    { onConflict: "assessment_result_id" },
   );
   if (progressError) throw progressError;
 
@@ -165,7 +178,6 @@ export async function saveAssessmentArtifacts({
       status: "scored",
       scored_at: now,
       updated_at: now,
-      ...overall,
     })
     .eq("id", mockSessionId);
 
