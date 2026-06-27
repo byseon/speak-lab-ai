@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "dev:backend": "cd backend && uv run python examples/live_demo.py",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
+    "test:backend": "cd backend && uv run pytest -q",
     "format": "prettier --write ."
   },
   "dependencies": {

@@ -29,10 +29,18 @@ export function BottomNav() {
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  wide = false,
+}: {
+  children: React.ReactNode;
+  wide?: boolean;
+}) {
   return (
     <div className="min-h-screen bg-background pb-24 font-sans text-foreground antialiased">
-      <div className="mx-auto w-full max-w-md px-5 pt-8">{children}</div>
+      <div className={`mx-auto w-full px-5 pt-8 ${wide ? "max-w-4xl" : "max-w-md"}`}>
+        {children}
+      </div>
       <BottomNav />
     </div>
   );

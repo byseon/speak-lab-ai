@@ -32,7 +32,8 @@ function SignupPage() {
       toast.success("Account created!");
       navigate({ to: "/onboarding" });
     } else {
-      toast.success("Check your email to confirm your account before logging in.");
+      toast.success("Account created. Check your email to confirm it before logging in.");
+      navigate({ to: "/login" });
     }
   }
 
@@ -52,14 +53,32 @@ function SignupPage() {
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" autoComplete="new-password" minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            minLength={6}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Creating account…" : "Create account"}
+        </Button>
+        <Button asChild variant="outline" className="w-full">
+          <Link to="/demo">Continue with live demo</Link>
         </Button>
       </form>
     </AuthShell>

@@ -12,4 +12,19 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      allowedHosts: ["sphere-reborn-handbag.ngrok-free.dev"],
+      proxy: {
+        "/api": {
+          target: process.env.ASSESSMENT_API_URL ?? "http://localhost:8000",
+          changeOrigin: true,
+        },
+        "/webhook": {
+          target: process.env.ASSESSMENT_API_URL ?? "http://localhost:8000",
+          changeOrigin: true,
+        },
+      },
+    },
+  },
 });
