@@ -19,6 +19,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMockRouteImport } from './routes/_authenticated/mock'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedSessionPreviewRouteImport } from './routes/_authenticated/session.preview'
+import { Route as AuthenticatedPracticePart2SpeakRouteImport } from './routes/_authenticated/practice.part-2.speak'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -70,6 +71,12 @@ const AuthenticatedSessionPreviewRoute =
     path: '/session/preview',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPracticePart2SpeakRoute =
+  AuthenticatedPracticePart2SpeakRouteImport.update({
+    id: '/part-2/speak',
+    path: '/part-2/speak',
+    getParentRoute: () => AuthenticatedPracticeRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -78,9 +85,10 @@ export interface FileRoutesByFullPath {
   '/home': typeof AuthenticatedHomeRoute
   '/mock': typeof AuthenticatedMockRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/practice': typeof AuthenticatedPracticeRoute
+  '/practice': typeof AuthenticatedPracticeRouteWithChildren
   '/progress': typeof AuthenticatedProgressRoute
   '/session/preview': typeof AuthenticatedSessionPreviewRoute
+  '/practice/part-2/speak': typeof AuthenticatedPracticePart2SpeakRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -89,9 +97,10 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/mock': typeof AuthenticatedMockRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
-  '/practice': typeof AuthenticatedPracticeRoute
+  '/practice': typeof AuthenticatedPracticeRouteWithChildren
   '/progress': typeof AuthenticatedProgressRoute
   '/session/preview': typeof AuthenticatedSessionPreviewRoute
+  '/practice/part-2/speak': typeof AuthenticatedPracticePart2SpeakRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -102,9 +111,10 @@ export interface FileRoutesById {
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/mock': typeof AuthenticatedMockRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
-  '/_authenticated/practice': typeof AuthenticatedPracticeRoute
+  '/_authenticated/practice': typeof AuthenticatedPracticeRouteWithChildren
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
   '/_authenticated/session/preview': typeof AuthenticatedSessionPreviewRoute
+  '/_authenticated/practice/part-2/speak': typeof AuthenticatedPracticePart2SpeakRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/practice'
     | '/progress'
     | '/session/preview'
+    | '/practice/part-2/speak'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/practice'
     | '/progress'
     | '/session/preview'
+    | '/practice/part-2/speak'
   id:
     | '__root__'
     | '/'
@@ -141,6 +153,7 @@ export interface FileRouteTypes {
     | '/_authenticated/practice'
     | '/_authenticated/progress'
     | '/_authenticated/session/preview'
+    | '/_authenticated/practice/part-2/speak'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -222,14 +235,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSessionPreviewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/practice/part-2/speak': {
+      id: '/_authenticated/practice/part-2/speak'
+      path: '/part-2/speak'
+      fullPath: '/practice/part-2/speak'
+      preLoaderRoute: typeof AuthenticatedPracticePart2SpeakRouteImport
+      parentRoute: typeof AuthenticatedPracticeRoute
+    }
   }
 }
+
+interface AuthenticatedPracticeRouteChildren {
+  AuthenticatedPracticePart2SpeakRoute: typeof AuthenticatedPracticePart2SpeakRoute
+}
+
+const AuthenticatedPracticeRouteChildren: AuthenticatedPracticeRouteChildren = {
+  AuthenticatedPracticePart2SpeakRoute: AuthenticatedPracticePart2SpeakRoute,
+}
+
+const AuthenticatedPracticeRouteWithChildren =
+  AuthenticatedPracticeRoute._addFileChildren(
+    AuthenticatedPracticeRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedMockRoute: typeof AuthenticatedMockRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
-  AuthenticatedPracticeRoute: typeof AuthenticatedPracticeRoute
+  AuthenticatedPracticeRoute: typeof AuthenticatedPracticeRouteWithChildren
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
   AuthenticatedSessionPreviewRoute: typeof AuthenticatedSessionPreviewRoute
 }
@@ -238,7 +271,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedMockRoute: AuthenticatedMockRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
-  AuthenticatedPracticeRoute: AuthenticatedPracticeRoute,
+  AuthenticatedPracticeRoute: AuthenticatedPracticeRouteWithChildren,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
   AuthenticatedSessionPreviewRoute: AuthenticatedSessionPreviewRoute,
 }

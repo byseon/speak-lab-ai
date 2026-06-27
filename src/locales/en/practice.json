@@ -1,0 +1,31 @@
+{
+  "part2": {
+    "speak": {
+      "title": "Part 2 — Speak",
+      "phase": "Your turn",
+      "recording": "Recording",
+      "notRecording": "Microphone paused",
+      "examinerVideoLabel": "AI examiner video",
+      "examinerName": "AI examiner",
+      "cueHeading": "Cue card (reference)",
+      "cueExpand": "Show cue card",
+      "cueCollapse": "Hide cue card",
+      "cuePrompt": "Describe a place where you like to read.",
+      "cueBullets": [
+        "Where it is",
+        "How often you go there",
+        "What you read there",
+        "And explain why you like reading there"
+      ],
+      "progressLabel": "Speaking time remaining",
+      "timeRemaining": "{{mm}}:{{ss}} remaining",
+      "endTurn": "End turn",
+      "announcements": {
+        "started": "Speaking turn started. Two minutes on the clock.",
+        "halfway": "One minute remaining.",
+        "thirtySeconds": "Thirty seconds remaining.",
+        "complete": "Time complete. Ending your turn."
+      }
+    }
+  }
+}
