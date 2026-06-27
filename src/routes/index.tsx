@@ -29,6 +29,30 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Face-to-face video practice for IELTS Speaking Parts 1, 2 and 3.",
       },
+      { property: "og:url", content: "https://ielts-pal-ai.lovable.app/" },
+      { property: "og:type", content: "website" },
+    ],
+    links: [{ rel: "canonical", href: "https://ielts-pal-ai.lovable.app/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            { q: "Is this like the real IELTS Speaking test?", a: "We simulate the same three-part structure, timing, and face-to-face format. The AI examiner asks follow-up questions and does not show you text to read during Parts 1 and 3 — similar to the real test." },
+            { q: "How is my band score calculated?", a: "Your mock is scored on the four official IELTS Speaking criteria: Fluency and coherence, Lexical resource, Grammatical range and accuracy, and Pronunciation." },
+            { q: "Do I need a camera and microphone?", a: "Yes. Speaking practice requires a microphone. A camera is recommended for the video examiner experience and to build comfort speaking on camera." },
+            { q: "Can I practice only Part 2?", a: "Your daily plan is personalized from your mocks, but you can explore practice by part anytime after signup." },
+            { q: "Who is SpeakLab for?", a: "English learners preparing for IELTS Speaking — especially students who want realistic practice without booking a human tutor for every session." },
+            { q: "Is SpeakLab affiliated with IELTS?", a: "No. SpeakLab is independent prep practice. IELTS is a registered trademark of its owners." },
+          ].map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }),
+      },
     ],
   }),
   component: Landing,
