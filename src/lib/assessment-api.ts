@@ -1,6 +1,10 @@
-// In local dev, prefer VITE_ASSESSMENT_API_URL (Python backend via ngrok or vite proxy).
-// Otherwise route /api/* to the Lovable Cloud edge function `assessment`.
-const EXPLICIT_BASE = (import.meta.env.VITE_ASSESSMENT_API_URL ?? "").replace(/\/$/, "");
+// In hackathon testing, always prefer VITE_ASSESSMENT_API_URL (Python backend via ngrok).
+// Keep the requested ngrok URL as the safe public fallback when the env var is not injected.
+const ASSESSMENT_API_FALLBACK = "https://sphere-reborn-handbag.ngrok-free.dev";
+const EXPLICIT_BASE = (import.meta.env.VITE_ASSESSMENT_API_URL ?? ASSESSMENT_API_FALLBACK).replace(
+  /\/$/,
+  "",
+);
 const SUPABASE_URL = (
   import.meta.env.VITE_SUPABASE_URL ??
   process.env.SUPABASE_URL ??
