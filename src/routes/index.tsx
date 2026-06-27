@@ -38,7 +38,7 @@ function CTA({ className = "" }: { className?: string }) {
   return (
     <Button asChild size="lg" className={`w-full sm:w-auto shadow-[var(--shadow-soft)] ${className}`}>
       <Link to="/signup">
-        {t("cta.takeFreeMock")} <ArrowRight className="ml-2 h-4 w-4" />
+        {t("cta.takeFreeMock")} <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
       </Link>
     </Button>
   );
@@ -326,7 +326,7 @@ function Landing() {
           <div className="mt-8 flex justify-center">
             <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
               <Link to="/signup">
-                {tCommon("cta.getStarted")} <ArrowRight className="ml-2 h-4 w-4" />
+                {tCommon("cta.getStarted")} <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
