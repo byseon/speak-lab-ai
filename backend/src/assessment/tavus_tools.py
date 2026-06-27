@@ -192,7 +192,7 @@ def _literal_quote(evidence: list[str]) -> str:
         if (
             len(stripped.split()) <= 18
             and not any(marker in stripped.lower() for marker in (
-                "candidate", "band", "score", "shows", "suggests", "evidence",
+                "candidate", "band", "score", "shows", "suggests", "because", "evidence",
             ))
         ):
             return stripped.strip("\"'“”")
