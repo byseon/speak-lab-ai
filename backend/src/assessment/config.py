@@ -12,11 +12,22 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
-try:  # optional convenience: auto-load .env if python-dotenv is present
-    from dotenv import load_dotenv
-    load_dotenv()
-except Exception:  # pragma: no cover
-    pass
+def _load_env_files() -> None:
+    """Load backend/.env, then repo-root .env (Lovable puts Tavus keys there)."""
+    try:
+        from dotenv import load_dotenv
+    except Exception:  # pragma: no cover
+        return
+    from pathlib import Path
+
+    backend_root = Path(__file__).resolve().parents[2]
+    repo_root = backend_root.parent
+    for path in (repo_root / ".env", backend_root / ".env"):
+        if path.is_file():
+            load_dotenv(path, override=True)
+
+
+_load_env_files()
 
 
 def _get(name: str, default: str = "") -> str:

@@ -13,6 +13,7 @@ import {
   ArrowRight,
   MessageSquareQuote,
 } from "lucide-react";
+import { LiveSessionMockup } from "@/components/LiveSessionMockup";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -42,6 +43,16 @@ function CTA({ className = "" }: { className?: string }) {
       </Link>
     </Button>
   );
+}
+
+function SectionBand({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <div className={className}>{children}</div>;
 }
 
 function Section({
@@ -115,45 +126,12 @@ function Landing() {
             </div>
           </div>
 
-          <div className="relative" aria-hidden="true">
-            <Card className="overflow-hidden border-border/70 shadow-[var(--shadow-soft)]">
-              <div className="aspect-video bg-gradient-to-br from-primary/15 via-accent/40 to-background">
-                <div className="flex h-full flex-col justify-between p-5">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="h-2 w-2 motion-safe:animate-pulse rounded-full bg-primary" />
-                    {t("hero.session.liveLabel")}
-                  </div>
-                  <div className="rounded-xl border border-border bg-card/85 p-4 backdrop-blur">
-                    <div className="text-xs uppercase tracking-wide text-muted-foreground">
-                      {t("hero.session.examinerLabel")}
-                    </div>
-                    <p className="mt-1 text-sm font-medium">
-                      {t("hero.session.examinerPrompt")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-4 gap-3 p-5 text-center">
-                {([
-                  ["fluency", "6.0"],
-                  ["lexical", "5.5"],
-                  ["grammar", "6.0"],
-                  ["pronunciation", "6.5"],
-                ] as const).map(([k, v]) => (
-                  <div key={k} className="rounded-lg bg-muted px-2 py-2">
-                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                      {t(`hero.session.criteria.${k}`)}
-                    </div>
-                    <div className="text-lg font-semibold text-foreground">{v}</div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
+          <LiveSessionMockup />
         </div>
       </section>
 
       {/* 2. Social proof strip */}
+      <SectionBand className="border-y border-border bg-section-alt">
       <Section className="!py-10">
         <p className="text-center text-xs uppercase tracking-[0.2em] text-muted-foreground">
           {t("socialProof.line")}
@@ -169,8 +147,10 @@ function Landing() {
           ))}
         </div>
       </Section>
+      </SectionBand>
 
       {/* 3. Problem */}
+      <SectionBand className="bg-background">
       <Section>
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -179,9 +159,11 @@ function Landing() {
           <p className="mt-4 text-muted-foreground">{t("problem.body")}</p>
         </div>
       </Section>
+      </SectionBand>
 
       {/* 4. How it works */}
-      <Section className="bg-card/40">
+      <SectionBand className="bg-section-alt">
+      <Section>
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {t("howItWorks.headline")}
@@ -201,8 +183,10 @@ function Landing() {
           <CTA />
         </div>
       </Section>
+      </SectionBand>
 
       {/* 5. Differentiator */}
+      <SectionBand className="bg-section-teal">
       <Section>
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
           <Card className="order-2 border-border/70 p-6 lg:order-1">
@@ -228,9 +212,11 @@ function Landing() {
           </div>
         </div>
       </Section>
+      </SectionBand>
 
       {/* 6. Personalization */}
-      <Section className="bg-card/40">
+      <SectionBand className="bg-background">
+      <Section>
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
           <div>
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -276,8 +262,10 @@ function Landing() {
           </Card>
         </div>
       </Section>
+      </SectionBand>
 
       {/* 7. Mock vs Practice */}
+      <SectionBand className="bg-section-alt">
       <Section>
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -305,9 +293,11 @@ function Landing() {
           </table>
         </div>
       </Section>
+      </SectionBand>
 
       {/* 8. For students */}
-      <Section className="bg-card/40">
+      <SectionBand className="bg-section-teal">
+      <Section>
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {t("forStudents.headline")}
@@ -315,8 +305,10 @@ function Landing() {
           <p className="mt-4 text-muted-foreground">{t("forStudents.body")}</p>
         </div>
       </Section>
+      </SectionBand>
 
       {/* 9. Pricing teaser */}
+      <SectionBand className="bg-background">
       <Section>
         <Card className="mx-auto max-w-3xl border-border/70 p-8 text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -332,9 +324,11 @@ function Landing() {
           </div>
         </Card>
       </Section>
+      </SectionBand>
 
       {/* 10. FAQ */}
-      <Section className="bg-card/40">
+      <SectionBand className="bg-section-alt">
+      <Section>
         <div className="mx-auto max-w-3xl">
           <h2 className="text-center text-3xl font-bold tracking-tight sm:text-4xl">
             {t("faq.headline")}
@@ -349,20 +343,21 @@ function Landing() {
           </Accordion>
         </div>
       </Section>
+      </SectionBand>
 
       {/* 11. Footer CTA */}
       </main>
-      <footer className="border-t border-border bg-card/40">
+      <footer className="border-t border-border bg-primary text-primary-foreground">
         <Section className="text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {t("footer.headline")}
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-muted-foreground">{t("footer.subhead")}</p>
+          <p className="mx-auto mt-3 max-w-xl text-primary-foreground/80">{t("footer.subhead")}</p>
           <div className="mt-8 flex justify-center">
-            <CTA />
+            <CTA className="!bg-primary-foreground !text-primary hover:!bg-primary-foreground/90" />
           </div>
         </Section>
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 border-t border-border px-5 py-6 text-xs text-muted-foreground sm:flex-row">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-3 border-t border-primary-foreground/20 px-5 py-6 text-xs text-primary-foreground/70 sm:flex-row">
           <div>{t("footer.copyright", { year: new Date().getFullYear() })}</div>
           <nav aria-label="Footer" className="flex gap-4">
             <a href="#">{t("footer.links.privacy")}</a>
